@@ -18,14 +18,17 @@ package com.example.android.camera2basic;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.view.MotionEvent;
 import android.widget.TextView;
 
 public class CameraActivity extends AppCompatActivity {
+    TextView text;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_camera);
-        TextView text = findViewById(R.id.todo);
+        text = findViewById(R.id.todo);
         text.setText(R.string.todo_text);
         if (null == savedInstanceState) {
             getSupportFragmentManager().beginTransaction()
@@ -34,4 +37,11 @@ public class CameraActivity extends AppCompatActivity {
         }
     }
 
+    public boolean onTouchEvent(MotionEvent event) {
+        float pointX = event.getX();
+        float pointY = event.getY();
+        text.setTranslationX(pointX);
+        text.setTranslationY(pointY);
+        return true;
+    }
 }
