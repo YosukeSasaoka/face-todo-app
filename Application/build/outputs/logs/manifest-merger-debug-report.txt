@@ -1,0 +1,103 @@
+-- Merging decision tree log ---
+manifest
+ADDED from C:\app-team1\face-todo-app\Application\src\main\AndroidManifest.xml:18:1-40:12
+MERGED from [com.android.support:support-v13:27.0.0] C:\Users\mori\.gradle\caches\transforms-1\files-1.1\support-v13-27.0.0.aar\74275458dcfe41745a3b1304e43f1897\AndroidManifest.xml:17:1-22:12
+MERGED from [com.android.support:support-v4:27.0.0] C:\Users\mori\.gradle\caches\transforms-1\files-1.1\support-v4-27.0.0.aar\50add8d2a5a185b6488ae84a83bf4b2a\AndroidManifest.xml:17:1-22:12
+MERGED from [com.android.support:cardview-v7:27.0.0] C:\Users\mori\.gradle\caches\transforms-1\files-1.1\cardview-v7-27.0.0.aar\cd332801d51fdd4e0f4d71ff965fd2eb\AndroidManifest.xml:17:1-22:12
+MERGED from [com.android.support:appcompat-v7:27.0.0] C:\Users\mori\.gradle\caches\transforms-1\files-1.1\appcompat-v7-27.0.0.aar\506b97251ef45f7439cb0a637e6dfb15\AndroidManifest.xml:17:1-22:12
+MERGED from [com.android.support:support-media-compat:27.0.0] C:\Users\mori\.gradle\caches\transforms-1\files-1.1\support-media-compat-27.0.0.aar\9365db47fefd035d4079e5fee6bb4250\AndroidManifest.xml:17:1-22:12
+MERGED from [com.android.support:support-fragment:27.0.0] C:\Users\mori\.gradle\caches\transforms-1\files-1.1\support-fragment-27.0.0.aar\3c8c4c915b32afb893ee39e2fe549896\AndroidManifest.xml:17:1-22:12
+MERGED from [com.android.support:support-core-utils:27.0.0] C:\Users\mori\.gradle\caches\transforms-1\files-1.1\support-core-utils-27.0.0.aar\790572802c0f3667c9c51714933abc8c\AndroidManifest.xml:17:1-22:12
+MERGED from [com.android.support:animated-vector-drawable:27.0.0] C:\Users\mori\.gradle\caches\transforms-1\files-1.1\animated-vector-drawable-27.0.0.aar\857784a70b3d0304d48c06d3ee25804f\AndroidManifest.xml:17:1-22:12
+MERGED from [com.android.support:support-core-ui:27.0.0] C:\Users\mori\.gradle\caches\transforms-1\files-1.1\support-core-ui-27.0.0.aar\b148f4bc4d2e0c2d86e311f1b074ae77\AndroidManifest.xml:17:1-22:12
+MERGED from [com.android.support:support-vector-drawable:27.0.0] C:\Users\mori\.gradle\caches\transforms-1\files-1.1\support-vector-drawable-27.0.0.aar\ac2bbe9ef85ba863046d020a18804f18\AndroidManifest.xml:17:1-22:12
+MERGED from [com.android.support:support-compat:27.0.0] C:\Users\mori\.gradle\caches\transforms-1\files-1.1\support-compat-27.0.0.aar\ff1acf389415e2b5cc16e429853b55d7\AndroidManifest.xml:17:1-22:12
+MERGED from [android.arch.lifecycle:runtime:1.0.0] C:\Users\mori\.gradle\caches\transforms-1\files-1.1\runtime-1.0.0.aar\45bc5db496193f92a62adc652d86a0dd\AndroidManifest.xml:17:1-30:12
+	package
+		ADDED from C:\app-team1\face-todo-app\Application\src\main\AndroidManifest.xml:19:5-47
+	xmlns:android
+		ADDED from C:\app-team1\face-todo-app\Application\src\main\AndroidManifest.xml:18:11-69
+uses-permission#android.permission.CAMERA
+ADDED from C:\app-team1\face-todo-app\Application\src\main\AndroidManifest.xml:21:5-65
+	android:name
+		ADDED from C:\app-team1\face-todo-app\Application\src\main\AndroidManifest.xml:21:22-62
+uses-feature#android.hardware.camera
+ADDED from C:\app-team1\face-todo-app\Application\src\main\AndroidManifest.xml:23:5-60
+	android:name
+		ADDED from C:\app-team1\face-todo-app\Application\src\main\AndroidManifest.xml:23:19-57
+uses-feature#android.hardware.camera.autofocus
+ADDED from C:\app-team1\face-todo-app\Application\src\main\AndroidManifest.xml:24:5-70
+	android:name
+		ADDED from C:\app-team1\face-todo-app\Application\src\main\AndroidManifest.xml:24:19-67
+application
+ADDED from C:\app-team1\face-todo-app\Application\src\main\AndroidManifest.xml:26:5-38:19
+MERGED from [android.arch.lifecycle:runtime:1.0.0] C:\Users\mori\.gradle\caches\transforms-1\files-1.1\runtime-1.0.0.aar\45bc5db496193f92a62adc652d86a0dd\AndroidManifest.xml:24:5-28:19
+MERGED from [android.arch.lifecycle:runtime:1.0.0] C:\Users\mori\.gradle\caches\transforms-1\files-1.1\runtime-1.0.0.aar\45bc5db496193f92a62adc652d86a0dd\AndroidManifest.xml:24:5-28:19
+	android:label
+		ADDED from C:\app-team1\face-todo-app\Application\src\main\AndroidManifest.xml:27:9-41
+	android:icon
+		ADDED from C:\app-team1\face-todo-app\Application\src\main\AndroidManifest.xml:28:9-45
+	android:allowBackup
+		ADDED from C:\app-team1\face-todo-app\Application\src\main\AndroidManifest.xml:26:18-44
+	android:theme
+		ADDED from C:\app-team1\face-todo-app\Application\src\main\AndroidManifest.xml:29:9-45
+activity#com.example.android.camera2basic.CameraActivity
+ADDED from C:\app-team1\face-todo-app\Application\src\main\AndroidManifest.xml:31:9-37:20
+	android:label
+		ADDED from C:\app-team1\face-todo-app\Application\src\main\AndroidManifest.xml:32:19-51
+	android:name
+		ADDED from C:\app-team1\face-todo-app\Application\src\main\AndroidManifest.xml:31:19-49
+intent-filter#android.intent.action.MAIN+android.intent.category.LAUNCHER
+ADDED from C:\app-team1\face-todo-app\Application\src\main\AndroidManifest.xml:33:13-36:29
+action#android.intent.action.MAIN
+ADDED from C:\app-team1\face-todo-app\Application\src\main\AndroidManifest.xml:34:17-69
+	android:name
+		ADDED from C:\app-team1\face-todo-app\Application\src\main\AndroidManifest.xml:34:25-66
+category#android.intent.category.LAUNCHER
+ADDED from C:\app-team1\face-todo-app\Application\src\main\AndroidManifest.xml:35:17-77
+	android:name
+		ADDED from C:\app-team1\face-todo-app\Application\src\main\AndroidManifest.xml:35:27-74
+uses-sdk
+INJECTED from C:\app-team1\face-todo-app\Application\src\main\AndroidManifest.xml reason: use-sdk injection requested
+INJECTED from C:\app-team1\face-todo-app\Application\src\main\AndroidManifest.xml
+INJECTED from C:\app-team1\face-todo-app\Application\src\main\AndroidManifest.xml
+MERGED from [com.android.support:support-v13:27.0.0] C:\Users\mori\.gradle\caches\transforms-1\files-1.1\support-v13-27.0.0.aar\74275458dcfe41745a3b1304e43f1897\AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:support-v13:27.0.0] C:\Users\mori\.gradle\caches\transforms-1\files-1.1\support-v13-27.0.0.aar\74275458dcfe41745a3b1304e43f1897\AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:support-v4:27.0.0] C:\Users\mori\.gradle\caches\transforms-1\files-1.1\support-v4-27.0.0.aar\50add8d2a5a185b6488ae84a83bf4b2a\AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:support-v4:27.0.0] C:\Users\mori\.gradle\caches\transforms-1\files-1.1\support-v4-27.0.0.aar\50add8d2a5a185b6488ae84a83bf4b2a\AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:cardview-v7:27.0.0] C:\Users\mori\.gradle\caches\transforms-1\files-1.1\cardview-v7-27.0.0.aar\cd332801d51fdd4e0f4d71ff965fd2eb\AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:cardview-v7:27.0.0] C:\Users\mori\.gradle\caches\transforms-1\files-1.1\cardview-v7-27.0.0.aar\cd332801d51fdd4e0f4d71ff965fd2eb\AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:appcompat-v7:27.0.0] C:\Users\mori\.gradle\caches\transforms-1\files-1.1\appcompat-v7-27.0.0.aar\506b97251ef45f7439cb0a637e6dfb15\AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:appcompat-v7:27.0.0] C:\Users\mori\.gradle\caches\transforms-1\files-1.1\appcompat-v7-27.0.0.aar\506b97251ef45f7439cb0a637e6dfb15\AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:support-media-compat:27.0.0] C:\Users\mori\.gradle\caches\transforms-1\files-1.1\support-media-compat-27.0.0.aar\9365db47fefd035d4079e5fee6bb4250\AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:support-media-compat:27.0.0] C:\Users\mori\.gradle\caches\transforms-1\files-1.1\support-media-compat-27.0.0.aar\9365db47fefd035d4079e5fee6bb4250\AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:support-fragment:27.0.0] C:\Users\mori\.gradle\caches\transforms-1\files-1.1\support-fragment-27.0.0.aar\3c8c4c915b32afb893ee39e2fe549896\AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:support-fragment:27.0.0] C:\Users\mori\.gradle\caches\transforms-1\files-1.1\support-fragment-27.0.0.aar\3c8c4c915b32afb893ee39e2fe549896\AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:support-core-utils:27.0.0] C:\Users\mori\.gradle\caches\transforms-1\files-1.1\support-core-utils-27.0.0.aar\790572802c0f3667c9c51714933abc8c\AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:support-core-utils:27.0.0] C:\Users\mori\.gradle\caches\transforms-1\files-1.1\support-core-utils-27.0.0.aar\790572802c0f3667c9c51714933abc8c\AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:animated-vector-drawable:27.0.0] C:\Users\mori\.gradle\caches\transforms-1\files-1.1\animated-vector-drawable-27.0.0.aar\857784a70b3d0304d48c06d3ee25804f\AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:animated-vector-drawable:27.0.0] C:\Users\mori\.gradle\caches\transforms-1\files-1.1\animated-vector-drawable-27.0.0.aar\857784a70b3d0304d48c06d3ee25804f\AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:support-core-ui:27.0.0] C:\Users\mori\.gradle\caches\transforms-1\files-1.1\support-core-ui-27.0.0.aar\b148f4bc4d2e0c2d86e311f1b074ae77\AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:support-core-ui:27.0.0] C:\Users\mori\.gradle\caches\transforms-1\files-1.1\support-core-ui-27.0.0.aar\b148f4bc4d2e0c2d86e311f1b074ae77\AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:support-vector-drawable:27.0.0] C:\Users\mori\.gradle\caches\transforms-1\files-1.1\support-vector-drawable-27.0.0.aar\ac2bbe9ef85ba863046d020a18804f18\AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:support-vector-drawable:27.0.0] C:\Users\mori\.gradle\caches\transforms-1\files-1.1\support-vector-drawable-27.0.0.aar\ac2bbe9ef85ba863046d020a18804f18\AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:support-compat:27.0.0] C:\Users\mori\.gradle\caches\transforms-1\files-1.1\support-compat-27.0.0.aar\ff1acf389415e2b5cc16e429853b55d7\AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:support-compat:27.0.0] C:\Users\mori\.gradle\caches\transforms-1\files-1.1\support-compat-27.0.0.aar\ff1acf389415e2b5cc16e429853b55d7\AndroidManifest.xml:20:5-44
+MERGED from [android.arch.lifecycle:runtime:1.0.0] C:\Users\mori\.gradle\caches\transforms-1\files-1.1\runtime-1.0.0.aar\45bc5db496193f92a62adc652d86a0dd\AndroidManifest.xml:20:5-22:41
+MERGED from [android.arch.lifecycle:runtime:1.0.0] C:\Users\mori\.gradle\caches\transforms-1\files-1.1\runtime-1.0.0.aar\45bc5db496193f92a62adc652d86a0dd\AndroidManifest.xml:20:5-22:41
+INJECTED from C:\app-team1\face-todo-app\Application\src\main\AndroidManifest.xml
+INJECTED from C:\app-team1\face-todo-app\Application\src\main\AndroidManifest.xml
+	android:targetSdkVersion
+		INJECTED from C:\app-team1\face-todo-app\Application\src\main\AndroidManifest.xml
+		ADDED from C:\app-team1\face-todo-app\Application\src\main\AndroidManifest.xml
+		INJECTED from C:\app-team1\face-todo-app\Application\src\main\AndroidManifest.xml
+	android:minSdkVersion
+		INJECTED from C:\app-team1\face-todo-app\Application\src\main\AndroidManifest.xml
+		ADDED from C:\app-team1\face-todo-app\Application\src\main\AndroidManifest.xml
+		INJECTED from C:\app-team1\face-todo-app\Application\src\main\AndroidManifest.xml
+meta-data#android.arch.lifecycle.VERSION
+ADDED from [android.arch.lifecycle:runtime:1.0.0] C:\Users\mori\.gradle\caches\transforms-1\files-1.1\runtime-1.0.0.aar\45bc5db496193f92a62adc652d86a0dd\AndroidManifest.xml:25:9-27:47
+	android:value
+		ADDED from [android.arch.lifecycle:runtime:1.0.0] C:\Users\mori\.gradle\caches\transforms-1\files-1.1\runtime-1.0.0.aar\45bc5db496193f92a62adc652d86a0dd\AndroidManifest.xml:27:13-44
+	android:name
+		ADDED from [android.arch.lifecycle:runtime:1.0.0] C:\Users\mori\.gradle\caches\transforms-1\files-1.1\runtime-1.0.0.aar\45bc5db496193f92a62adc652d86a0dd\AndroidManifest.xml:26:13-58

@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merger version="3"><dataSet config="main"><source path="C:\app-team1\face-todo-app\Application\src\main\shaders"/></dataSet><dataSet config="debug"><source path="C:\app-team1\face-todo-app\Application\src\debug\shaders"/></dataSet></merger>

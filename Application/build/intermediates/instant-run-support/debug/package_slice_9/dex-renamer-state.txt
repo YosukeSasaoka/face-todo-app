@@ -1,0 +1,4 @@
+#Mon Feb 05 21:00:33 JST 2018
+base.0=C\:\\app-team1\\face-todo-app\\Application\\build\\intermediates\\transforms\\dexMerger\\debug\\28
+path.0=classes.dex
+renamed.0=classes.dex
