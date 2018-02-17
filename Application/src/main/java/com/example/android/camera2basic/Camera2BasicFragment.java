@@ -884,6 +884,7 @@ public class Camera2BasicFragment extends Fragment
         }
     }
 
+    /*
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
@@ -903,6 +904,7 @@ public class Camera2BasicFragment extends Fragment
             }
         }
     }
+    */
 
     private void setAutoFlash(CaptureRequest.Builder requestBuilder) {
         if (mFlashSupported) {
