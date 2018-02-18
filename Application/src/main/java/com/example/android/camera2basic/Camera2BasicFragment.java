@@ -60,6 +60,7 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -68,6 +69,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Scanner;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
@@ -160,6 +162,9 @@ public class Camera2BasicFragment extends Fragment
      * ID of the current {@link CameraDevice}.
      */
     private String mCameraId;
+
+    /* AzureStrageに接続するための情報を格納する */
+    private String connection[] = new String[2];
 
     /**
      * An {@link AutoFitTextureView} for camera preview.
@@ -434,6 +439,17 @@ public class Camera2BasicFragment extends Fragment
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+        try{
+            File file = new File("path");
+            Scanner scan = new Scanner(file);
+            int i = 0;
+            while(scan.hasNext()) {
+                String str = scan.next();
+                connection[i] = str.substring(str.indexOf(":") + 1, str.length);
+            }
+        }catch (FileNotFoundException e) {
+            System.out.println(e);
+        }
         mFile = new File(getActivity().getExternalFilesDir(null), "pic.jpg");
         x = 0;
         y = 0;
