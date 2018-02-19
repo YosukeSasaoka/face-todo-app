@@ -42,6 +42,7 @@ import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.Image;
 import android.media.ImageReader;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.support.annotation.NonNull;
@@ -439,18 +440,11 @@ public class Camera2BasicFragment extends Fragment
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        try{
-            File file = new File("path");
-            Scanner scan = new Scanner(file);
-            int i = 0;
-            while(scan.hasNext()) {
-                String str = scan.next();
-                connection[i] = str.substring(str.indexOf(":") + 1, str.length);
-            }
-        }catch (FileNotFoundException e) {
-            System.out.println(e);
-        }
-        mFile = new File(getActivity().getExternalFilesDir(null), "pic.jpg");
+        /*
+         valuesの中にxmlを配置し、stringのresource"azure_key","azure_connection"を記述
+          */
+        connection[0] = getString(R.string.azure_key);
+        connection[1] = getString(R.string.azure_connection);
         x = 0;
         y = 0;
         new Thread(new Runnable() {
@@ -932,6 +926,7 @@ public class Camera2BasicFragment extends Fragment
     public File getFile() {
         return mFile;
     }
+
 
     /**
      * Saves a JPEG {@link Image} into the specified {@link File}.
