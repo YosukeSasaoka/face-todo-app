@@ -16,7 +16,6 @@
 
 package com.example.android.camera2basic;
 
-import android.media.Image;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.MotionEvent;
@@ -48,6 +47,12 @@ public class CameraActivity extends AppCompatActivity{
                         e.printStackTrace();
                     }
                     moveText(camera2.getX(),camera2.getY());
+                    text.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            text.setText(camera2.getTodo());
+                        }
+                    });
                 }
             }
         }).start();
@@ -64,10 +69,6 @@ public class CameraActivity extends AppCompatActivity{
     private void moveText(float x, float y) {
         text.setTranslationX(x);
         text.setTranslationY(y);
-    }
-
-    private void setText(String txt) {
-        text.setText(txt);
     }
 }
 
