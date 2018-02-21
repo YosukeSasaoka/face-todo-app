@@ -21,8 +21,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.MotionEvent;
 import android.widget.TextView;
 
-public class CameraActivity extends AppCompatActivity {
-    TextView text;
+public class CameraActivity extends AppCompatActivity{
+    private TextView text;
+    Camera2BasicFragment camera2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,17 +32,43 @@ public class CameraActivity extends AppCompatActivity {
         text = findViewById(R.id.todo);
         text.setText(R.string.todo_text);
         if (null == savedInstanceState) {
+            camera2 = Camera2BasicFragment.newInstance();
             getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.container, Camera2BasicFragment.newInstance())
+                    .replace(R.id.container, camera2)
                     .commit();
         }
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                for(;;) {
+                    try {
+                        Thread.sleep(200);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    moveText(camera2.getX(),camera2.getY());
+                    text.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            text.setText(camera2.getTodo());
+                        }
+                    });
+                }
+            }
+        }).start();
     }
 
+    @Override
     public boolean onTouchEvent(MotionEvent event) {
         float pointX = event.getX();
         float pointY = event.getY();
-        text.setTranslationX(pointX);
-        text.setTranslationY(pointY);
+        this.moveText(pointX,pointY);
         return true;
     }
+
+    private void moveText(float x, float y) {
+        text.setTranslationX(x);
+        text.setTranslationY(y);
+    }
 }
+
