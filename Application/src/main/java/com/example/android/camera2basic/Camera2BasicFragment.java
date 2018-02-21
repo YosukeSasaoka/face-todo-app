@@ -61,7 +61,6 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -70,7 +69,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Scanner;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
@@ -240,6 +238,7 @@ public class Camera2BasicFragment extends Fragment
      */
     private File mFile;
     private float x,y;
+    private String todo_text;
 
     /**
      * This a callback object for the {@link ImageReader}. "onImageAvailable" will be called when a
@@ -457,10 +456,12 @@ public class Camera2BasicFragment extends Fragment
                         e.printStackTrace();
                     }
                     //takePicture();
+                    // x,y,todo_textが更新された場合にきちんと変更が反映できるかのテストコード
                     x += 1;
                     y += 1;
                     if (x > 300) x = 0;
                     if (y > 300) y = 0;
+                    todo_text = "x: " + x;
                 }
             }
         }).start();
@@ -922,10 +923,7 @@ public class Camera2BasicFragment extends Fragment
 
     public float getX(){return x;}
     public float getY(){return y;}
-
-    public File getFile() {
-        return mFile;
-    }
+    public String getTodo(){return todo_text;}
 
 
     /**
