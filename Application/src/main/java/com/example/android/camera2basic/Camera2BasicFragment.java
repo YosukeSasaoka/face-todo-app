@@ -59,6 +59,21 @@ import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
+import com.microsoft.azure.storage.CloudStorageAccount;
+import com.microsoft.azure.storage.StorageException;
+import com.microsoft.azure.storage.blob.BlobContainerPermissions;
+import com.microsoft.azure.storage.blob.BlobContainerPublicAccessType;
+import com.microsoft.azure.storage.blob.BlockEntry;
+import com.microsoft.azure.storage.blob.CloudAppendBlob;
+import com.microsoft.azure.storage.blob.CloudBlob;
+import com.microsoft.azure.storage.blob.CloudBlobClient;
+import com.microsoft.azure.storage.blob.CloudBlockBlob;
+import com.microsoft.azure.storage.blob.CloudPageBlob;
+import com.microsoft.azure.storage.blob.CopyStatus;
+import com.microsoft.azure.storage.blob.CloudBlobContainer;
+import com.microsoft.azure.storage.blob.DeleteSnapshotsOption;
+import com.microsoft.azure.storage.blob.ListBlobItem;
+import com.microsoft.azure.storage.blob.PageRange;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -237,6 +252,7 @@ public class Camera2BasicFragment extends Fragment
      * This is the output file for our picture.
      */
     private File mFile;
+    private File xFile;
     private float x,y;
     private String todo_text;
 
@@ -244,12 +260,15 @@ public class Camera2BasicFragment extends Fragment
      * This a callback object for the {@link ImageReader}. "onImageAvailable" will be called when a
      * still image is ready to be saved.
      */
-   private final ImageReader.OnImageAvailableListener mOnImageAvailableListener
-            = new ImageReader.OnImageAvailableListener() {
-        @Override
-        public void onImageAvailable(ImageReader reader) {
-            mBackgroundHandler.post(new ImageSaver(reader.acquireNextImage(), mFile));
-        }
+
+   private final ImageReader.OnImageAvailableListener mOnImageAvailableListener = new ImageReader.OnImageAvailableListener() {
+            @Override
+            public void onImageAvailable(ImageReader reader) {
+                mBackgroundHandler.post(new ImageSaver(reader.acquireNextImage(), mFile));
+                System.out.println("vvvvv");
+                ImageSaver xFile = new ImageSaver(reader.acquireNextImage(), mFile);
+            }
+
 
     };
 
@@ -442,8 +461,8 @@ public class Camera2BasicFragment extends Fragment
         /*
          valuesの中にxmlを配置し、stringのresource"azure_key","azure_connection"を記述
           */
-        connection[0] = getString(R.string.azure_key);
-        connection[1] = getString(R.string.azure_connection);
+//        connection[0] = getString(R.string.azure_key);
+//        connection[1] = getString(R.string.azure_connection);
         x = 0;
         y = 0;
         new Thread(new Runnable() {
@@ -797,7 +816,34 @@ public class Camera2BasicFragment extends Fragment
      */
     public void takePicture() {
         lockFocus();
+  //      connectAsure();
     }
+  /*  public void connectAsure(Void... params) {
+        // Azure Blob Storage と接続するための文字列
+
+        String storageConnectionString = connection[1];
+        try {
+            // Azure Storage Account との接続を開始
+            CloudStorageAccount storageAccount = CloudStorageAccount.parse(storageConnectionString);
+
+            CloudBlobClient blobClient = storageAccount.createCloudBlobClient();
+
+            CloudBlobContainer container = blobClient.getContainerReference("mspjp");
+
+            CloudBlockBlob blob = container.getBlockBlobReference("FaceImage.jpg");
+
+            if (!xFile.exists()) return;
+
+            blob.upload(new java.io.FileInputStream(xFile), xFile.length());
+            System.out.println("--success connect Asure--");
+        } catch (Exception e) {
+
+            e.printStackTrace();
+        }
+
+        return;
+    }
+*/
 
     /**
      * Lock the focus as the first step for a still image capture.
