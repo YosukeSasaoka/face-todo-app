@@ -129,6 +129,3 @@ fabric.properties
 
 
 # End of https://www.gitignore.io/api/androidstudio
-
-# Secret resources file about azure accessing
-./Application/src/main/res/values/connection.xml
