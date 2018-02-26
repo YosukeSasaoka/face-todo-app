@@ -76,6 +76,7 @@ import com.microsoft.azure.storage.blob.ListBlobItem;
 import com.microsoft.azure.storage.blob.PageRange;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -255,21 +256,51 @@ public class Camera2BasicFragment extends Fragment
     private File xFile;
     private float x,y;
     private String todo_text;
+    private CloudBlockBlob blob;
 
     /**
      * This a callback object for the {@link ImageReader}. "onImageAvailable" will be called when a
      * still image is ready to be saved.
      */
+    public void connectAsure(Void... params) {
+        // Azure Blob Storage と接続するための文字列
 
+        String storageConnectionString = connection[1];
+        System.out.println(connection[1]);
+        try {
+            // Azure Storage Account との接続を開始
+            CloudStorageAccount storageAccount = CloudStorageAccount.parse(storageConnectionString);
+
+            CloudBlobClient blobClient = storageAccount.createCloudBlobClient();
+
+            CloudBlobContainer container = blobClient.getContainerReference("mspjp");
+
+            CloudBlockBlob blob = container.getBlockBlobReference("FaceImage.jpg");
+
+            if (!mFile.exists()) return;
+
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+        }
+
+        return;
+    }
    private final ImageReader.OnImageAvailableListener mOnImageAvailableListener = new ImageReader.OnImageAvailableListener() {
             @Override
             public void onImageAvailable(ImageReader reader) {
                 mBackgroundHandler.post(new ImageSaver(reader.acquireNextImage(), mFile));
                 System.out.println("vvvvv");
-                ImageSaver xFile = new ImageSaver(reader.acquireNextImage(), mFile);
+                try {
+                    blob.upload(new FileInputStream(mFile), mFile.length());
+                } catch (StorageException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                System.out.println("--success connect Asure--");
             }
-
-
     };
 
     /**
@@ -456,13 +487,14 @@ public class Camera2BasicFragment extends Fragment
     }
 
     @Override
+
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         /*
          valuesの中にxmlを配置し、stringのresource"azure_key","azure_connection"を記述
           */
-//        connection[0] = getString(R.string.azure_key);
-//        connection[1] = getString(R.string.azure_connection);
+        connection[0] = getString(R.string.azure_key);
+        connection[1] = getString(R.string.azure_connection);
         x = 0;
         y = 0;
         new Thread(new Runnable() {
@@ -470,11 +502,11 @@ public class Camera2BasicFragment extends Fragment
             public void run() {
                 for (;;) {
                     try {
-                        Thread.sleep(200);
+                        Thread.sleep(2000);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-                    //takePicture();
+                    takePicture();
                     // x,y,todo_textが更新された場合にきちんと変更が反映できるかのテストコード
                     x += 1;
                     y += 1;
@@ -815,35 +847,10 @@ public class Camera2BasicFragment extends Fragment
      * Initiate a still image capture.
      */
     public void takePicture() {
+        connectAsure();
         lockFocus();
-  //      connectAsure();
+
     }
-  /*  public void connectAsure(Void... params) {
-        // Azure Blob Storage と接続するための文字列
-
-        String storageConnectionString = connection[1];
-        try {
-            // Azure Storage Account との接続を開始
-            CloudStorageAccount storageAccount = CloudStorageAccount.parse(storageConnectionString);
-
-            CloudBlobClient blobClient = storageAccount.createCloudBlobClient();
-
-            CloudBlobContainer container = blobClient.getContainerReference("mspjp");
-
-            CloudBlockBlob blob = container.getBlockBlobReference("FaceImage.jpg");
-
-            if (!xFile.exists()) return;
-
-            blob.upload(new java.io.FileInputStream(xFile), xFile.length());
-            System.out.println("--success connect Asure--");
-        } catch (Exception e) {
-
-            e.printStackTrace();
-        }
-
-        return;
-    }
-*/
 
     /**
      * Lock the focus as the first step for a still image capture.
