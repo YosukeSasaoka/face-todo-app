@@ -77,9 +77,12 @@ import com.microsoft.azure.storage.blob.PageRange;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
+import java.security.InvalidKeyException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -257,54 +260,24 @@ public class Camera2BasicFragment extends Fragment
     private File xFile;
     private float x,y;
     private String todo_text;
-    private CloudBlockBlob blob;
+
 
     /**
      * This a callback object for the {@link ImageReader}. "onImageAvailable" will be called when a
      * still image is ready to be saved.
      */
-    public void connectAsure() {
-        // Azure Blob Storage と接続するための文字列
-
-        //String storageConnectionString = connection[1];
-        //System.out.println(connection[1]);
-        try {
-            // Azure Storage Account との接続を開始
-            CloudStorageAccount storageAccount = CloudStorageAccount.parse("");//直打ち
-
-            CloudBlobClient blobClient = storageAccount.createCloudBlobClient();
-
-            CloudBlobContainer container = blobClient.getContainerReference("image");
-
-            CloudBlockBlob blob = container.getBlockBlobReference("FaceImage.jpg");
 
 
-        } catch (Exception e) {
 
-            e.printStackTrace();
-        }
 
-        return;
-    }
-    public void uploadPicture(){
-        System.out.println("uploadStart");
-        try {
-            blob.upload(new FileInputStream(mFile), mFile.length());
-        } catch (StorageException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        System.out.println("--success connect Asure--");
-    }
 
    private final ImageReader.OnImageAvailableListener mOnImageAvailableListener = new ImageReader.OnImageAvailableListener() {
             @Override
-            public void onImageAvailable(ImageReader reader) {
-                mBackgroundHandler.post(new ImageSaver(reader.acquireNextImage(), mFile));
-
-            }
+                public void onImageAvailable(ImageReader reader) {
+                    mBackgroundHandler.post(new ImageSaver(reader.acquireNextImage(), mFile));
+                }
     };
+
 
     /**
      * {@link CaptureRequest.Builder} for the camera preview
@@ -853,9 +826,8 @@ public class Camera2BasicFragment extends Fragment
      * Initiate a still image capture.
      */
     public void takePicture() {
-        connectAsure();
+
         lockFocus();
-        uploadPicture();
 
     }
 
@@ -999,6 +971,7 @@ public class Camera2BasicFragment extends Fragment
          * The file we save the image into.
          */
         private final File mFile;
+        private CloudBlockBlob blob;
 
         ImageSaver(Image image, File file) {
             mImage = image;
@@ -1007,6 +980,7 @@ public class Camera2BasicFragment extends Fragment
 
         @Override
         public void run() {
+            System.out.println("aaaaaaaaaaa");
             ByteBuffer buffer = mImage.getPlanes()[0].getBuffer();
             byte[] bytes = new byte[buffer.remaining()];
             buffer.get(bytes);
@@ -1014,11 +988,28 @@ public class Camera2BasicFragment extends Fragment
             try {
                 output = new FileOutputStream(mFile);
                 output.write(bytes);
-
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {
                 mImage.close();
+                try {
+                    CloudStorageAccount storageAccount = CloudStorageAccount.parse("");//直打ち
+                    CloudBlobClient blobClient = storageAccount.createCloudBlobClient();
+                    CloudBlobContainer container = blobClient.getContainerReference("image");
+                    CloudBlockBlob blob = container.getBlockBlobReference("FaceImage.jpg");
+                    blob.upload(new FileInputStream(mFile), mFile.length());
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (URISyntaxException e) {
+                    e.printStackTrace();
+                } catch (StorageException e) {
+                    e.printStackTrace();
+                } catch (InvalidKeyException e) {
+                    e.printStackTrace();
+                }
+                System.out.println("---AploadSuccess---");
                 if (null != output) {
                     try {
                         output.close();
@@ -1027,6 +1018,7 @@ public class Camera2BasicFragment extends Fragment
                     }
                 }
             }
+
         }
 
     }
