@@ -252,6 +252,7 @@ public class Camera2BasicFragment extends Fragment
     /**
      * This is the output file for our picture.
      */
+
     private File mFile;
     private File xFile;
     private float x,y;
@@ -262,22 +263,20 @@ public class Camera2BasicFragment extends Fragment
      * This a callback object for the {@link ImageReader}. "onImageAvailable" will be called when a
      * still image is ready to be saved.
      */
-    public void connectAsure(Void... params) {
+    public void connectAsure() {
         // Azure Blob Storage と接続するための文字列
 
-        String storageConnectionString = connection[1];
-        System.out.println(connection[1]);
+        //String storageConnectionString = connection[1];
+        //System.out.println(connection[1]);
         try {
             // Azure Storage Account との接続を開始
-            CloudStorageAccount storageAccount = CloudStorageAccount.parse(storageConnectionString);
+            CloudStorageAccount storageAccount = CloudStorageAccount.parse("");//直打ち
 
             CloudBlobClient blobClient = storageAccount.createCloudBlobClient();
 
-            CloudBlobContainer container = blobClient.getContainerReference("mspjp");
+            CloudBlobContainer container = blobClient.getContainerReference("image");
 
             CloudBlockBlob blob = container.getBlockBlobReference("FaceImage.jpg");
-
-            if (!mFile.exists()) return;
 
 
         } catch (Exception e) {
@@ -287,19 +286,23 @@ public class Camera2BasicFragment extends Fragment
 
         return;
     }
+    public void uploadPicture(){
+        System.out.println("uploadStart");
+        try {
+            blob.upload(new FileInputStream(mFile), mFile.length());
+        } catch (StorageException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        System.out.println("--success connect Asure--");
+    }
+
    private final ImageReader.OnImageAvailableListener mOnImageAvailableListener = new ImageReader.OnImageAvailableListener() {
             @Override
             public void onImageAvailable(ImageReader reader) {
                 mBackgroundHandler.post(new ImageSaver(reader.acquireNextImage(), mFile));
-                System.out.println("vvvvv");
-                try {
-                    blob.upload(new FileInputStream(mFile), mFile.length());
-                } catch (StorageException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                System.out.println("--success connect Asure--");
+
             }
     };
 
@@ -490,6 +493,9 @@ public class Camera2BasicFragment extends Fragment
 
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+
+        mFile = new File(getActivity().getExternalFilesDir(null), "pic.jpg");
+
         /*
          valuesの中にxmlを配置し、stringのresource"azure_key","azure_connection"を記述
           */
@@ -849,6 +855,7 @@ public class Camera2BasicFragment extends Fragment
     public void takePicture() {
         connectAsure();
         lockFocus();
+        uploadPicture();
 
     }
 
@@ -1006,7 +1013,7 @@ public class Camera2BasicFragment extends Fragment
             FileOutputStream output = null;
             try {
                 output = new FileOutputStream(mFile);
-                //output.write(bytes);
+                output.write(bytes);
 
             } catch (IOException e) {
                 e.printStackTrace();
