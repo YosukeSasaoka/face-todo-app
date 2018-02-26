@@ -275,6 +275,7 @@ public class Camera2BasicFragment extends Fragment
             @Override
                 public void onImageAvailable(ImageReader reader) {
                     mBackgroundHandler.post(new ImageSaver(reader.acquireNextImage(), mFile));
+                    System.out.println("log Listener");
                 }
     };
 
@@ -378,6 +379,9 @@ public class Camera2BasicFragment extends Fragment
         }
 
     };
+
+    public Camera2BasicFragment() {
+    }
 
     /**
      * Shows a {@link Toast} on the UI thread.
