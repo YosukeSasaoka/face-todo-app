@@ -58,21 +58,12 @@ import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
+
 import com.microsoft.azure.storage.CloudStorageAccount;
 import com.microsoft.azure.storage.StorageException;
-import com.microsoft.azure.storage.blob.BlobContainerPermissions;
-import com.microsoft.azure.storage.blob.BlobContainerPublicAccessType;
-import com.microsoft.azure.storage.blob.BlockEntry;
-import com.microsoft.azure.storage.blob.CloudAppendBlob;
-import com.microsoft.azure.storage.blob.CloudBlob;
 import com.microsoft.azure.storage.blob.CloudBlobClient;
-import com.microsoft.azure.storage.blob.CloudBlockBlob;
-import com.microsoft.azure.storage.blob.CloudPageBlob;
-import com.microsoft.azure.storage.blob.CopyStatus;
 import com.microsoft.azure.storage.blob.CloudBlobContainer;
-import com.microsoft.azure.storage.blob.DeleteSnapshotsOption;
-import com.microsoft.azure.storage.blob.ListBlobItem;
-import com.microsoft.azure.storage.blob.PageRange;
+import com.microsoft.azure.storage.blob.CloudBlockBlob;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -1011,7 +1002,7 @@ public class Camera2BasicFragment extends Fragment
                     e.printStackTrace();
                 } finally {
                     mImage.close();
-                    /*
+
                     try {
                         CloudStorageAccount storageAccount = CloudStorageAccount.parse("");//直打ち
                         CloudBlobClient blobClient = storageAccount.createCloudBlobClient();
@@ -1029,7 +1020,7 @@ public class Camera2BasicFragment extends Fragment
                     } catch (InvalidKeyException e) {
                         e.printStackTrace();
                     }
-                    */
+
                 }
                 // x,y,todo_textの中身が適当な値に変更されたのを確認するために、適当に値を変更
                 ImageSaver.x += 3;
