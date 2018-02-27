@@ -35,6 +35,25 @@ public class CameraActivity extends AppCompatActivity {
                     .replace(R.id.container, Camera2BasicFragment.newInstance())
                     .commit();
         }
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                for(;;) {
+                    try {
+                        Thread.sleep(200);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    text.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            text.setText(camera2.getTodo());
+                            moveText(camera2.getX(),camera2.getY());
+                        }
+                    });
+                }
+            }
+        }).start();
     }
 
     public boolean onTouchEvent(MotionEvent event) {

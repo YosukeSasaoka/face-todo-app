@@ -485,6 +485,7 @@ public class Camera2BasicFragment extends Fragment
                     if (x > 300) x = 0;
                     if (y > 300) y = 0;
                     todo_text = "x: " + x;
+                    System.out.println("a");
                 }
             }
         }).start();
