@@ -58,11 +58,30 @@ import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
+import com.microsoft.azure.storage.CloudStorageAccount;
+import com.microsoft.azure.storage.StorageException;
+import com.microsoft.azure.storage.blob.BlobContainerPermissions;
+import com.microsoft.azure.storage.blob.BlobContainerPublicAccessType;
+import com.microsoft.azure.storage.blob.BlockEntry;
+import com.microsoft.azure.storage.blob.CloudAppendBlob;
+import com.microsoft.azure.storage.blob.CloudBlob;
+import com.microsoft.azure.storage.blob.CloudBlobClient;
+import com.microsoft.azure.storage.blob.CloudBlockBlob;
+import com.microsoft.azure.storage.blob.CloudPageBlob;
+import com.microsoft.azure.storage.blob.CopyStatus;
+import com.microsoft.azure.storage.blob.CloudBlobContainer;
+import com.microsoft.azure.storage.blob.DeleteSnapshotsOption;
+import com.microsoft.azure.storage.blob.ListBlobItem;
+import com.microsoft.azure.storage.blob.PageRange;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
+import java.security.InvalidKeyException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -232,21 +251,24 @@ public class Camera2BasicFragment extends Fragment
     /**
      * This is the output file for our picture.
      */
+
     private File mFile;
+    private float x,y;
+    private String todo_text;
+
 
     /**
      * This a callback object for the {@link ImageReader}. "onImageAvailable" will be called when a
      * still image is ready to be saved.
      */
-    private final ImageReader.OnImageAvailableListener mOnImageAvailableListener
-            = new ImageReader.OnImageAvailableListener() {
-
-        @Override
-        public void onImageAvailable(ImageReader reader) {
-            mBackgroundHandler.post(new ImageSaver(reader.acquireNextImage(), mFile));
-        }
-
+    private final ImageReader.OnImageAvailableListener mOnImageAvailableListener = new ImageReader.OnImageAvailableListener() {
+            @Override
+                public void onImageAvailable(ImageReader reader) {
+                    mBackgroundHandler.post(new ImageSaver(reader.acquireNextImage(), mFile));
+                    System.out.println("log Listener");
+                }
     };
+
 
     /**
      * {@link CaptureRequest.Builder} for the camera preview
@@ -348,6 +370,9 @@ public class Camera2BasicFragment extends Fragment
 
     };
 
+    public Camera2BasicFragment() {
+    }
+
     /**
      * Shows a {@link Toast} on the UI thread.
      *
@@ -432,9 +457,38 @@ public class Camera2BasicFragment extends Fragment
     }
 
     @Override
+
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         mFile = new File(getActivity().getExternalFilesDir(null), "pic.jpg");
+
+        /*
+         valuesの中にxmlを配置し、stringのresource"azure_key","azure_connection"を記述
+          */
+        // connection[0] = getString(R.string.azure_key);
+        // connection[1] = getString(R.string.azure_connection);
+        x = 0;
+        y = 0;
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                for (;;) {
+                    try {
+                        Thread.sleep(2000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    takePicture();
+                    // x,y,todo_textが更新された場合にきちんと変更が反映できるかのテストコード
+                    x += 1;
+                    y += 1;
+                    if (x > 300) x = 0;
+                    if (y > 300) y = 0;
+                    todo_text = "x: " + x;
+                    System.out.println("a");
+                }
+            }
+        }).start();
     }
 
     @Override
@@ -924,6 +978,7 @@ public class Camera2BasicFragment extends Fragment
          * The file we save the image into.
          */
         private final File mFile;
+        private CloudBlockBlob blob;
 
         ImageSaver(Image image, File file) {
             mImage = image;
@@ -932,6 +987,7 @@ public class Camera2BasicFragment extends Fragment
 
         @Override
         public void run() {
+            System.out.println("aaaaaaaaaaa");
             ByteBuffer buffer = mImage.getPlanes()[0].getBuffer();
             byte[] bytes = new byte[buffer.remaining()];
             buffer.get(bytes);
@@ -943,6 +999,24 @@ public class Camera2BasicFragment extends Fragment
                 e.printStackTrace();
             } finally {
                 mImage.close();
+                try {
+                    CloudStorageAccount storageAccount = CloudStorageAccount.parse("");//直打ち
+                    CloudBlobClient blobClient = storageAccount.createCloudBlobClient();
+                    CloudBlobContainer container = blobClient.getContainerReference("image");
+                    CloudBlockBlob blob = container.getBlockBlobReference("FaceImage.jpg");
+                    blob.upload(new FileInputStream(mFile), mFile.length());
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (URISyntaxException e) {
+                    e.printStackTrace();
+                } catch (StorageException e) {
+                    e.printStackTrace();
+                } catch (InvalidKeyException e) {
+                    e.printStackTrace();
+                }
+                System.out.println("---AploadSuccess---");
                 if (null != output) {
                     try {
                         output.close();
@@ -951,6 +1025,7 @@ public class Camera2BasicFragment extends Fragment
                     }
                 }
             }
+
         }
 
     }
