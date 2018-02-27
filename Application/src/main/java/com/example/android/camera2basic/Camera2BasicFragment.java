@@ -42,7 +42,6 @@ import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.Image;
 import android.media.ImageReader;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.support.annotation.NonNull;
@@ -92,7 +91,7 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
 public class Camera2BasicFragment extends Fragment
-        implements ActivityCompat.OnRequestPermissionsResultCallback {
+        implements View.OnClickListener, ActivityCompat.OnRequestPermissionsResultCallback {
 
     /**
      * Conversion from screen rotation to JPEG orientation.
@@ -181,9 +180,6 @@ public class Camera2BasicFragment extends Fragment
      */
     private String mCameraId;
 
-    /* AzureStrageに接続するための情報を格納する */
-    private String connection[] = new String[2];
-
     /**
      * An {@link AutoFitTextureView} for camera preview.
      */
@@ -257,7 +253,6 @@ public class Camera2BasicFragment extends Fragment
      */
 
     private File mFile;
-    private File xFile;
     private float x,y;
     private String todo_text;
 
@@ -266,12 +261,7 @@ public class Camera2BasicFragment extends Fragment
      * This a callback object for the {@link ImageReader}. "onImageAvailable" will be called when a
      * still image is ready to be saved.
      */
-
-
-
-
-
-   private final ImageReader.OnImageAvailableListener mOnImageAvailableListener = new ImageReader.OnImageAvailableListener() {
+    private final ImageReader.OnImageAvailableListener mOnImageAvailableListener = new ImageReader.OnImageAvailableListener() {
             @Override
                 public void onImageAvailable(ImageReader reader) {
                     mBackgroundHandler.post(new ImageSaver(reader.acquireNextImage(), mFile));
@@ -461,8 +451,8 @@ public class Camera2BasicFragment extends Fragment
 
     @Override
     public void onViewCreated(final View view, Bundle savedInstanceState) {
-        //view.findViewById(R.id.picture).setOnClickListener(this);
-        //view.findViewById(R.id.info).setOnClickListener(this);
+        view.findViewById(R.id.picture).setOnClickListener(this);
+        view.findViewById(R.id.info).setOnClickListener(this);
         mTextureView = (AutoFitTextureView) view.findViewById(R.id.texture);
     }
 
@@ -470,14 +460,13 @@ public class Camera2BasicFragment extends Fragment
 
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-
         mFile = new File(getActivity().getExternalFilesDir(null), "pic.jpg");
 
         /*
          valuesの中にxmlを配置し、stringのresource"azure_key","azure_connection"を記述
           */
-        connection[0] = getString(R.string.azure_key);
-        connection[1] = getString(R.string.azure_connection);
+        // connection[0] = getString(R.string.azure_key);
+        // connection[1] = getString(R.string.azure_connection);
         x = 0;
         y = 0;
         new Thread(new Runnable() {
@@ -829,11 +818,8 @@ public class Camera2BasicFragment extends Fragment
     /**
      * Initiate a still image capture.
      */
-    public void takePicture() {
-
+    private void takePicture() {
         lockFocus();
-        OnImageAvailable(mImageReader);
-
     }
 
     /**
@@ -951,17 +937,32 @@ public class Camera2BasicFragment extends Fragment
         }
     }
 
+    @Override
+    public void onClick(View view) {
+        switch (view.getId()) {
+            case R.id.picture: {
+                takePicture();
+                break;
+            }
+            case R.id.info: {
+                Activity activity = getActivity();
+                if (null != activity) {
+                    new AlertDialog.Builder(activity)
+                            .setMessage(R.string.intro_message)
+                            .setPositiveButton(android.R.string.ok, null)
+                            .show();
+                }
+                break;
+            }
+        }
+    }
+
     private void setAutoFlash(CaptureRequest.Builder requestBuilder) {
         if (mFlashSupported) {
             requestBuilder.set(CaptureRequest.CONTROL_AE_MODE,
                     CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);
         }
     }
-
-    public float getX(){return x;}
-    public float getY(){return y;}
-    public String getTodo(){return todo_text;}
-
 
     /**
      * Saves a JPEG {@link Image} into the specified {@link File}.
