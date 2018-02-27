@@ -46,11 +46,11 @@ public class CameraActivity extends AppCompatActivity{
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-                    moveText(camera2.getX(),camera2.getY());
                     text.post(new Runnable() {
                         @Override
                         public void run() {
                             text.setText(camera2.getTodo());
+                            moveText(camera2.getX(),camera2.getY());
                         }
                     });
                 }
