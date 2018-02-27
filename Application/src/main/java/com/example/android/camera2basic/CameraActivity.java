@@ -23,6 +23,7 @@ import android.widget.TextView;
 
 public class CameraActivity extends AppCompatActivity {
     TextView text;
+    Camera2BasicFragment camera2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,8 +32,9 @@ public class CameraActivity extends AppCompatActivity {
         text = findViewById(R.id.todo);
         text.setText(R.string.todo_text);
         if (null == savedInstanceState) {
+            camera2 = Camera2BasicFragment.newInstance();
             getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.container, Camera2BasicFragment.newInstance())
+                    .replace(R.id.container, camera2)
                     .commit();
         }
         new Thread(new Runnable() {
@@ -48,7 +50,8 @@ public class CameraActivity extends AppCompatActivity {
                         @Override
                         public void run() {
                             text.setText(camera2.getTodo());
-                            moveText(camera2.getX(),camera2.getY());
+                            text.setTranslationX(camera2.getX());
+                            text.setTranslationY(camera2.getY());
                         }
                     });
                 }
