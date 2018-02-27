@@ -1031,6 +1031,7 @@ public class Camera2BasicFragment extends Fragment
                     }
                     */
                 }
+                // x,y,todo_textの中身が適当な値に変更されたのを確認するために、適当に値を変更
                 ImageSaver.x += 3;
                 ImageSaver.y += 3;
                 if (ImageSaver.x >= 300) ImageSaver.x = 0;
