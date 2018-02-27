@@ -832,6 +832,7 @@ public class Camera2BasicFragment extends Fragment
     public void takePicture() {
 
         lockFocus();
+        OnImageAvailable(mImageReader);
 
     }
 
