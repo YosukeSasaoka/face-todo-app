@@ -256,17 +256,16 @@ public class Camera2BasicFragment extends Fragment
     private float x,y;
     private String todo_text;
 
-
     /**
      * This a callback object for the {@link ImageReader}. "onImageAvailable" will be called when a
      * still image is ready to be saved.
      */
     private final ImageReader.OnImageAvailableListener mOnImageAvailableListener = new ImageReader.OnImageAvailableListener() {
             @Override
-                public void onImageAvailable(ImageReader reader) {
-                    mBackgroundHandler.post(new ImageSaver(reader.acquireNextImage(), mFile));
-                    System.out.println("log Listener");
-                }
+            public void onImageAvailable(ImageReader reader) {
+                mBackgroundHandler.post(new ImageSaver(reader.acquireNextImage(), mFile));
+                System.out.println("log Listener");
+            }
     };
 
 
@@ -469,22 +468,25 @@ public class Camera2BasicFragment extends Fragment
         // connection[1] = getString(R.string.azure_connection);
         x = 0;
         y = 0;
+        todo_text = "x:" + x;
         new Thread(new Runnable() {
             @Override
             public void run() {
                 for (;;) {
                     try {
-                        Thread.sleep(2000);
+                        Thread.sleep(5000);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-                    //takePicture();
+                    takePicture();
                     // x,y,todo_textが更新された場合にきちんと変更が反映できるかのテストコード
+                    /*
                     x += 1;
                     y += 1;
                     if (x > 300) x = 0;
                     if (y > 300) y = 0;
                     todo_text = "x: " + x;
+                    */
                     System.out.println("a");
                 }
             }
@@ -965,9 +967,9 @@ public class Camera2BasicFragment extends Fragment
         }
     }
 
-    public float getX() {return x;}
-    public float getY() {return y;}
-    public String getTodo() {return todo_text;}
+    public float getX() {return ImageSaver.getX();}
+    public float getY() {return ImageSaver.getY();}
+    public String getTodo() {return ImageSaver.getTodo();}
 
     /**
      * Saves a JPEG {@link Image} into the specified {@link File}.
@@ -983,44 +985,60 @@ public class Camera2BasicFragment extends Fragment
          */
         private final File mFile;
         private CloudBlockBlob blob;
+        private static float x = 0, y = 0;
+        private static String todo_text = "";
 
         ImageSaver(Image image, File file) {
             mImage = image;
             mFile = file;
         }
+        public static float getX() {return x;}
+        public static float getY() {return y;}
+        public static String getTodo() {return todo_text;}
 
         @Override
         public void run() {
             System.out.println("aaaaaaaaaaa");
-            ByteBuffer buffer = mImage.getPlanes()[0].getBuffer();
-            byte[] bytes = new byte[buffer.remaining()];
-            buffer.get(bytes);
-            FileOutputStream output = null;
-            try {
-                output = new FileOutputStream(mFile);
-                output.write(bytes);
-            } catch (IOException e) {
-                e.printStackTrace();
-            } finally {
-                mImage.close();
+            if (mImage != null && mFile != null) {
+                ByteBuffer buffer = mImage.getPlanes()[0].getBuffer();
+                byte[] bytes = new byte[buffer.remaining()];
+                buffer.get(bytes);
+                FileOutputStream output = null;
                 try {
-                    CloudStorageAccount storageAccount = CloudStorageAccount.parse("");//直打ち
-                    CloudBlobClient blobClient = storageAccount.createCloudBlobClient();
-                    CloudBlobContainer container = blobClient.getContainerReference("image");
-                    CloudBlockBlob blob = container.getBlockBlobReference("FaceImage.jpg");
-                    blob.upload(new FileInputStream(mFile), mFile.length());
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
+                    output = new FileOutputStream(mFile);
+                    output.write(bytes);
                 } catch (IOException e) {
                     e.printStackTrace();
-                } catch (URISyntaxException e) {
-                    e.printStackTrace();
-                } catch (StorageException e) {
-                    e.printStackTrace();
-                } catch (InvalidKeyException e) {
-                    e.printStackTrace();
+                } finally {
+                    mImage.close();
+                    /*
+                    try {
+                        CloudStorageAccount storageAccount = CloudStorageAccount.parse("");//直打ち
+                        CloudBlobClient blobClient = storageAccount.createCloudBlobClient();
+                        CloudBlobContainer container = blobClient.getContainerReference("image");
+                        CloudBlockBlob blob = container.getBlockBlobReference("FaceImage.jpg");
+                        blob.upload(new FileInputStream(mFile), mFile.length());
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } catch (URISyntaxException e) {
+                        e.printStackTrace();
+                    } catch (StorageException e) {
+                        e.printStackTrace();
+                    } catch (InvalidKeyException e) {
+                        e.printStackTrace();
+                    }
+                    */
                 }
+                // x,y,todo_textの中身が適当な値に変更されたのを確認するために、適当に値を変更
+                ImageSaver.x += 3;
+                ImageSaver.y += 3;
+                if (ImageSaver.x >= 300) ImageSaver.x = 0;
+                if (ImageSaver.y >= 300) ImageSaver.y = 0;
+                ImageSaver.todo_text = "x:" + ImageSaver.x;
                 System.out.println("---AploadSuccess---");
+                System.out.println(ImageSaver.todo_text);
                 if (null != output) {
                     try {
                         output.close();
