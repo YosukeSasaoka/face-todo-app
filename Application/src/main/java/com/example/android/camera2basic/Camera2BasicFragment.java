@@ -478,7 +478,7 @@ public class Camera2BasicFragment extends Fragment
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-                    takePicture();
+                    //takePicture();
                     // x,y,todo_textが更新された場合にきちんと変更が反映できるかのテストコード
                     x += 1;
                     y += 1;
@@ -964,6 +964,10 @@ public class Camera2BasicFragment extends Fragment
                     CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);
         }
     }
+
+    public float getX() {return x;}
+    public float getY() {return y;}
+    public String getTodo() {return todo_text;}
 
     /**
      * Saves a JPEG {@link Image} into the specified {@link File}.
