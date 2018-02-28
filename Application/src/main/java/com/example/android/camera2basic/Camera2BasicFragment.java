@@ -1002,7 +1002,6 @@ public class Camera2BasicFragment extends Fragment
                     e.printStackTrace();
                 } finally {
                     mImage.close();
-
                     try {
                         CloudStorageAccount storageAccount = CloudStorageAccount.parse("");//直打ち
                         CloudBlobClient blobClient = storageAccount.createCloudBlobClient();
