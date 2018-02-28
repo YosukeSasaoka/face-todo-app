@@ -254,7 +254,8 @@ public class Camera2BasicFragment extends Fragment
     private final ImageReader.OnImageAvailableListener mOnImageAvailableListener = new ImageReader.OnImageAvailableListener() {
             @Override
             public void onImageAvailable(ImageReader reader) {
-                mBackgroundHandler.post(new ImageSaver(reader.acquireNextImage(), mFile));
+                String connection = getString(R.string.azure_connection);
+                mBackgroundHandler.post(new ImageSaver(reader.acquireNextImage(), mFile, connection));
                 System.out.println("log Listener");
             }
     };
@@ -954,12 +955,14 @@ public class Camera2BasicFragment extends Fragment
          */
         private final File mFile;
         private CloudBlockBlob blob;
+        private String connection;
         private static float x = 0, y = 0;
         private static String todo_text = "";
 
-        ImageSaver(Image image, File file) {
+        ImageSaver(Image image, File file, String _connection) {
             mImage = image;
             mFile = file;
+            connection = _connection;
         }
         public static float getX() {return x;}
         public static float getY() {return y;}
@@ -981,7 +984,7 @@ public class Camera2BasicFragment extends Fragment
                 } finally {
                     mImage.close();
                     try {
-                        CloudStorageAccount storageAccount = CloudStorageAccount.parse("");//直打ち
+                        CloudStorageAccount storageAccount = CloudStorageAccount.parse(connection);
                         CloudBlobClient blobClient = storageAccount.createCloudBlobClient();
                         CloudBlobContainer container = blobClient.getContainerReference("image");
                         CloudBlockBlob blob = container.getBlockBlobReference("FaceImage.jpg");
