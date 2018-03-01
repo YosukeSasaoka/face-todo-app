@@ -24,7 +24,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
-import android.graphics.Camera;
 import android.graphics.ImageFormat;
 import android.graphics.Matrix;
 import android.graphics.Point;
@@ -267,7 +266,7 @@ public class Camera2BasicFragment extends Fragment
     private final ImageReader.OnImageAvailableListener mOnImageAvailableListener = new ImageReader.OnImageAvailableListener() {
             @Override
             public void onImageAvailable(ImageReader reader) {
-                mBackgroundHandler.post(new ImageSaver(reader.acquireNextImage(), mFile));
+                mBackgroundHandler.post(new ImageSaver(reader.acquireLatestImage(), mFile));
                 System.out.println("log Listener");
             }
     };
@@ -469,15 +468,17 @@ public class Camera2BasicFragment extends Fragment
         new Thread(new Runnable() {
             @Override
             public void run() {
-                for (;;) {
-                    System.out.println("==start of take picture loop==");
-                    try {
-                        Thread.sleep(5000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
+                try {
+                    Thread.sleep(3000);
+                    for (;;) {
+                        Thread.sleep(100);
+                        if (!ImageSaver.isNowProcessing()) {
+                            System.out.println("====start take picture====");
+                            takePicture();
+                        }
                     }
-                    takePicture();
-                    System.out.println("==end of take picture loop==");
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
             }
         }).start();
@@ -627,7 +628,8 @@ public class Camera2BasicFragment extends Fragment
                 }
 
                 // Check if the flash is supported.
-                Boolean available = characteristics.get(CameraCharacteristics.FLASH_INFO_AVAILABLE);
+                //Boolean available = characteristics.get(CameraCharacteristics.FLASH_INFO_AVAILABLE);
+                Boolean available = false;
                 mFlashSupported = available == null ? false : available;
 
                 mCameraId = cameraId;
@@ -962,6 +964,7 @@ public class Camera2BasicFragment extends Fragment
         private final File mFile;
         private static float x = 0, y = 0;
         private static String todo_text = "";
+        private static boolean nowProcessing = false;
 
         ImageSaver(Image image, File file) {
             mImage = image;
@@ -970,9 +973,15 @@ public class Camera2BasicFragment extends Fragment
         public static float getX() {return x;}
         public static float getY() {return y;}
         public static String getTodo() {return todo_text;}
+        public static boolean isNowProcessing() {return nowProcessing;}
 
         @Override
         public void run() {
+            if (nowProcessing) {
+                System.out.println("Now Processing.");
+                mImage.close();
+                return;
+            }
             System.out.println("カメラ解像度:\r\n\t" + getPictureWidth() + ":" + getPictureHeight());
             System.out.println("Saving image");
             if (mImage != null && mFile != null) {
@@ -988,86 +997,99 @@ public class Camera2BasicFragment extends Fragment
                     e.printStackTrace();
                 } finally {
                     mImage.close();
-                    System.out.println("Uploading image");
-                    try {
-                        String connection = getConnectionString();
-                        String containerName = "person";
-                        Date date = new Date();
-                        SimpleDateFormat sdf = new SimpleDateFormat("yyyy_mm_dd_hh_mm_ss");
-                        String imageName = sdf.format(date) + ".jpg";
-                        System.out.println("containerName: " + containerName);
-                        System.out.println("imageName: " + imageName);
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            System.out.println("Uploading image");
+                            try {
+                                nowProcessing = true;
+                                String connection = getConnectionString();
+                                String containerName = "person";
+                                Date date = new Date();
+                                SimpleDateFormat sdf = new SimpleDateFormat("yyyy_mm_dd_hh_mm_ss");
+                                String imageName = sdf.format(date) + ".jpg";
+                                System.out.println("containerName: " + containerName);
+                                System.out.println("imageName: " + imageName);
 
-                        // azure storageにアップロード
-                        CloudStorageAccount storageAccount = CloudStorageAccount.parse(connection);
-                        CloudBlobClient blobClient = storageAccount.createCloudBlobClient();
-                        CloudBlobContainer container = blobClient.getContainerReference(containerName);
-                        CloudBlockBlob blob = container.getBlockBlobReference(imageName);
-                        blob.upload(new FileInputStream(mFile), mFile.length());
-                        System.out.println("---UploadSuccess---");
+                                // azure storageにアップロード
+                                CloudStorageAccount storageAccount = CloudStorageAccount.parse(connection);
+                                CloudBlobClient blobClient = storageAccount.createCloudBlobClient();
+                                CloudBlobContainer container = blobClient.getContainerReference(containerName);
+                                CloudBlockBlob blob = container.getBlockBlobReference(imageName);
+                                blob.upload(new FileInputStream(mFile), mFile.length());
+                                System.out.println("---UploadSuccess---");
 
-                        //HTTPリクエストの設定
-                        String apiURL = getApiUrl();
-                        //String apiURL = "http://httpbin.org/get";
-                        URL connectURL = new URL(apiURL);
-                        HttpURLConnection con = (HttpURLConnection) connectURL.openConnection();
-                        con.setRequestMethod("POST");
-                        con.addRequestProperty("User-Agent", "Android");
-                        con.addRequestProperty("Content-Type", "application/json; charset=UTF-8");
-                        con.setDoOutput(true);
-                        con.setDoInput(true);
+                                //HTTPリクエストの設定
+                                String apiURL = getApiUrl();
+                                //String apiURL = "http://httpbin.org/get";
+                                URL connectURL = new URL(apiURL);
+                                HttpURLConnection con = (HttpURLConnection) connectURL.openConnection();
+                                con.setRequestMethod("POST");
+                                con.addRequestProperty("User-Agent", "Android");
+                                con.addRequestProperty("Content-Type", "application/json; charset=UTF-8");
+                                con.setDoOutput(true);
+                                con.setDoInput(true);
 
-                        // リクエストボディを書き込み
-                        String jsonText = "{\"FaceUrl\": \"" + getStorageUrl() + containerName + "/" + imageName + "\"}";
-                        System.out.println("RequestBody: " + jsonText);
-                        PrintStream ps = new PrintStream(con.getOutputStream());
-                        ps.print(jsonText);
-                        ps.close();
+                                // リクエストボディを書き込み
+                                String jsonText = "{\"FaceUrl\": \"" + getStorageUrl() + containerName + "/" + imageName + "\"}";
+                                System.out.println("RequestBody: " + jsonText);
+                                PrintStream ps = new PrintStream(con.getOutputStream());
+                                ps.print(jsonText);
+                                ps.close();
 
-                        // リクエスト開始
-                        con.connect();
-                        int status = con.getResponseCode();
-                        System.out.println("API URL:" + apiURL);
-                        System.out.println("response Code :[" + status + "]");
+                                // リクエスト開始
+    long start = System.currentTimeMillis();
+    System.out.println("::::::::::::start:::::::::::::");
+                                con.connect();
+                                int status = con.getResponseCode();
+                                System.out.println("API URL:" + apiURL);
+                                System.out.println("response Code :[" + status + "]");
+    long end = System.currentTimeMillis();
+    System.out.println("::::::::::::::::::end:::::::::::::::");
+    System.out.println((start - end) + "ms");
+    System.out.println("::::::::::::::::::::::::::::::::::::");
+                                if (status == HttpURLConnection.HTTP_OK) {
+                                    // リクエストの返り値を取得
+                                    InputStream inputStream = con.getInputStream();
+                                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+                                    StringBuilder strBuilder_json = new StringBuilder();
+                                    String line;
+                                    while ((line = bufferedReader.readLine()) != null) {
+                                        strBuilder_json.append(line);
+                                    }
+                                    // jsonの解釈部
+                                    String json = strBuilder_json.toString();
+                                    System.out.println("==========JSON=========");
+                                    System.out.println(json);
+                                    System.out.println("=======================");
+                                    ObjectMapper mapper = new ObjectMapper();
+                                    Response response = mapper.readValue(json, Response.class);
+                                    // 受け取ったjsonからx,y,todo_textを更新
+                                    ImageSaver.x = response.faceRectangle.left * CameraActivity.getWidth() / getPictureWidth();
+                                    ImageSaver.y = response.faceRectangle.top * CameraActivity.getHeight() / getPictureHeight();
+                                    ImageSaver.todo_text = response.todo.date + "\r\n" + response.todo.title;
+                                    System.out.println("todo:\r\n" + todo_text);
+                                    System.out.println("x:" + ImageSaver.x + "\r\n" + "y:" + ImageSaver.y);
+                                } else {
+                                    System.out.println("Response message of HTTP request: " + con.getResponseMessage());
+                                }
 
-                        if (status == HttpURLConnection.HTTP_OK) {
-                            // リクエストの返り値を取得
-                            InputStream inputStream = con.getInputStream();
-                            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
-                            StringBuilder strBuilder_json = new StringBuilder();
-                            String line;
-                            while ((line = bufferedReader.readLine()) != null) {
-                                strBuilder_json.append(line);
+                            } catch (FileNotFoundException e) {
+                                e.printStackTrace();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            } catch (URISyntaxException e) {
+                                e.printStackTrace();
+                            } catch (StorageException e) {
+                                e.printStackTrace();
+                            } catch (InvalidKeyException e) {
+                                e.printStackTrace();
+                            } finally {
+                                nowProcessing = false;
                             }
-                            // jsonの解釈部
-                            String json = strBuilder_json.toString();
-                            System.out.println("==========JSON=========");
-                            System.out.println(json);
-                            System.out.println("=======================");
-
-                            ObjectMapper mapper = new ObjectMapper();
-                            Response response = mapper.readValue(json, Response.class);
-                            // 受け取ったjsonからx,y,todo_textを更新
-                            ImageSaver.x = response.faceRectangle.left * CameraActivity.getWidth() / getPictureWidth();
-                            ImageSaver.y = response.faceRectangle.top * CameraActivity.getHeight() / getPictureHeight();
-                            ImageSaver.todo_text = response.todo.date + "\r\n" + response.todo.title;
-                            System.out.println("todo:\r\n" + todo_text);
-                            System.out.println("x:" + ImageSaver.x + "\r\n" + "y:" + ImageSaver.y);
-                        } else {
-                            System.out.println("Response message of HTTP request: " + con.getResponseMessage());
                         }
+                    }).start();
 
-                    } catch (FileNotFoundException e) {
-                        e.printStackTrace();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (URISyntaxException e) {
-                        e.printStackTrace();
-                    } catch (StorageException e) {
-                        e.printStackTrace();
-                    } catch (InvalidKeyException e) {
-                        e.printStackTrace();
-                    }
                 }
                 if (null != output) {
                     try {
