@@ -59,6 +59,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.storage.CloudStorageAccount;
 import com.microsoft.azure.storage.StorageException;
@@ -258,8 +259,6 @@ public class Camera2BasicFragment extends Fragment
      */
 
     private File mFile;
-    private float x,y;
-    private String todo_text;
     private static String api_url = "";
     private static String connection = "";
     private static String storage_url = "";
@@ -469,10 +468,6 @@ public class Camera2BasicFragment extends Fragment
         api_url = getString(R.string.server_url);
         storage_url = getString(R.string.azure_url);
         connection = getString(R.string.azure_connection);
-
-        x = 0;
-        y = 0;
-        todo_text = "x:" + x;
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -1015,7 +1010,7 @@ public class Camera2BasicFragment extends Fragment
                         String apiURL = getApiUrl();
                         //String apiURL = "http://httpbin.org/get";
                         URL connectURL = new URL(apiURL);
-                        HttpURLConnection con = (HttpURLConnection)connectURL.openConnection();
+                        HttpURLConnection con = (HttpURLConnection) connectURL.openConnection();
                         con.setRequestMethod("POST");
                         con.addRequestProperty("User-Agent", "Android");
                         con.addRequestProperty("Content-Type", "application/json; charset=UTF-8");
@@ -1033,7 +1028,7 @@ public class Camera2BasicFragment extends Fragment
                         con.connect();
                         int status = con.getResponseCode();
                         System.out.println("API URL:" + apiURL);
-                        System.out.println("response Code :[" + status +"]" );
+                        System.out.println("response Code :[" + status + "]");
 
                         if (status == HttpURLConnection.HTTP_OK) {
                             // リクエストの返り値を取得
@@ -1041,7 +1036,7 @@ public class Camera2BasicFragment extends Fragment
                             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
                             StringBuilder strBuilder_json = new StringBuilder();
                             String line;
-                            while((line = bufferedReader.readLine()) != null) {
+                            while ((line = bufferedReader.readLine()) != null) {
                                 strBuilder_json.append(line);
                             }
                             // jsonの解釈部
@@ -1054,7 +1049,8 @@ public class Camera2BasicFragment extends Fragment
                             Response response = mapper.readValue(json, Response.class);
                             // 受け取ったjsonからx,y,todo_textを更新
                             ImageSaver.x = response.faceRectangle.left;
-                            ImageSaver.y = response.faceRectangle.top + response.faceRectangle.height;
+                            //ImageSaver.y = response.faceRectangle.top + response.faceRectangle.height;
+                            ImageSaver.y = response.faceRectangle.top;
                             ImageSaver.todo_text = response.todo.date + "\r\n" + response.todo.title;
                             System.out.println("todo:\r\n" + todo_text);
                             System.out.println("x:" + ImageSaver.x + "\r\n" + "y:" + ImageSaver.y);
@@ -1072,13 +1068,8 @@ public class Camera2BasicFragment extends Fragment
                         e.printStackTrace();
                     } catch (InvalidKeyException e) {
                         e.printStackTrace();
-                    }/* catch (JSONException e) {
-                        e.printStackTrace();
-                    }*/
+                    }
                 }
-                // x,y,todo_textの中身が適当な値に変更されたのを確認するために、適当に値を変更
-                ImageSaver.todo_text = "x:" + ImageSaver.x;
-                System.out.println(ImageSaver.todo_text);
                 if (null != output) {
                     try {
                         output.close();
@@ -1088,21 +1079,34 @@ public class Camera2BasicFragment extends Fragment
                 }
             }
         }
-        public class Response {
-            int personId;
-            FaceRectangle faceRectangle;
-            Todo todo;
-        }
-        public class FaceRectangle {
-            int top;
-            int left;
-            int width;
-            int height;
-        }
-        public class Todo {
-            String title;
-            String date;
-        }
+    }
+
+    public static class Response {
+        @JsonProperty("personId")
+        String personId;
+        @JsonProperty("faceRectangle")
+        FaceRectangle faceRectangle;
+        @JsonProperty("todo")
+        Todo todo;
+        public Response() {}
+    }
+    public static class FaceRectangle {
+        @JsonProperty("top")
+        int top;
+        @JsonProperty("left")
+        int left;
+        @JsonProperty("width")
+        int width;
+        @JsonProperty("height")
+        int height;
+        public FaceRectangle() {}
+    }
+    public static class Todo {
+        @JsonProperty("title")
+        String title;
+        @JsonProperty("date")
+        String date;
+        public Todo() {}
     }
 
     /**
