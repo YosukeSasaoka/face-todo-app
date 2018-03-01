@@ -85,10 +85,12 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.security.InvalidKeyException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
@@ -978,6 +980,7 @@ public class Camera2BasicFragment extends Fragment
 
             System.out.println("Saving image");
             if (mImage != null && mFile != null) {
+                // 画像を保存
                 ByteBuffer buffer = mImage.getPlanes()[0].getBuffer();
                 byte[] bytes = new byte[buffer.remaining()];
                 buffer.get(bytes);
@@ -993,7 +996,12 @@ public class Camera2BasicFragment extends Fragment
                     try {
                         String connection = getConnectionString();
                         String containerName = "person";
-                        String imageName = "FaceImage.jpg";
+                        Date date = new Date();
+                        SimpleDateFormat sdf = new SimpleDateFormat("yyyy_mm_dd_hh_mm_ss");
+                        String imageName = sdf.format(date) + ".jpg";
+                        System.out.println("containerName: " + containerName);
+                        System.out.println("imageName: " + imageName);
+
 
                         // azure storageにアップロード
                         CloudStorageAccount storageAccount = CloudStorageAccount.parse(connection);
@@ -1028,6 +1036,7 @@ public class Camera2BasicFragment extends Fragment
                         System.out.println("response Code :[" + status +"]" );
 
                         if (status == HttpURLConnection.HTTP_OK) {
+                            // リクエストの返り値を取得
                             InputStream inputStream = con.getInputStream();
                             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
                             StringBuilder strBuilder_json = new StringBuilder();
@@ -1035,15 +1044,19 @@ public class Camera2BasicFragment extends Fragment
                             while((line = bufferedReader.readLine()) != null) {
                                 strBuilder_json.append(line);
                             }
+                            // jsonの解釈部
                             String json = strBuilder_json.toString();
                             System.out.println("==========JSON=========");
                             System.out.println(json);
                             System.out.println("=======================");
 
                             ObjectMapper mapper = new ObjectMapper();
-                            Face face = mapper.readValue(json, Face.class);
-                            ImageSaver.x = face.faceRectangle.left;
-                            ImageSaver.y = face.faceRectangle.top;
+                            Response response = mapper.readValue(json, Response.class);
+                            // 受け取ったjsonからx,y,todo_textを更新
+                            ImageSaver.x = response.faceRectangle.left;
+                            ImageSaver.y = response.faceRectangle.top + response.faceRectangle.height;
+                            ImageSaver.todo_text = response.todo.date + "\r\n" + response.todo.title;
+                            System.out.println("todo:\r\n" + todo_text);
                             System.out.println("x:" + ImageSaver.x + "\r\n" + "y:" + ImageSaver.y);
                         } else {
                             System.out.println("Response message of HTTP request: " + con.getResponseMessage());
@@ -1074,11 +1087,11 @@ public class Camera2BasicFragment extends Fragment
                     }
                 }
             }
-
         }
-        public class Face {
-            int faceId;
+        public class Response {
+            int personId;
             FaceRectangle faceRectangle;
+            Todo todo;
         }
         public class FaceRectangle {
             int top;
@@ -1086,7 +1099,10 @@ public class Camera2BasicFragment extends Fragment
             int width;
             int height;
         }
-
+        public class Todo {
+            String title;
+            String date;
+        }
     }
 
     /**
