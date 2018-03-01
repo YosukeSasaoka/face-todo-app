@@ -16,27 +16,39 @@
 
 package com.example.android.camera2basic;
 
+import android.graphics.Point;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.view.Display;
 import android.view.MotionEvent;
+import android.view.WindowManager;
 import android.widget.TextView;
 
 public class CameraActivity extends AppCompatActivity {
     TextView text;
     Camera2BasicFragment camera2;
+    private static Point size;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_camera);
+        // モニタ解像度の取得
+        WindowManager wm = (WindowManager)getSystemService(WINDOW_SERVICE);
+        Display display = wm.getDefaultDisplay();
+        size = new Point();
+        display.getRealSize(size);
+        System.out.println(size.x + ":" + size.y);
+        // TextViewをViewに追加
         text = findViewById(R.id.todo);
-        text.setText(R.string.todo_text);
+        text.setText("");
         if (null == savedInstanceState) {
             camera2 = Camera2BasicFragment.newInstance();
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.container, camera2)
                     .commit();
         }
+        // todo,x,yの更新処理
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -65,5 +77,14 @@ public class CameraActivity extends AppCompatActivity {
         text.setTranslationX(pointX);
         text.setTranslationY(pointY);
         return true;
+    }
+    public static Point getSize() {
+        return size;
+    }
+    public static int getWidth() {
+        return size.x;
+    }
+    public static int getHeight(){
+        return size.y;
     }
 }

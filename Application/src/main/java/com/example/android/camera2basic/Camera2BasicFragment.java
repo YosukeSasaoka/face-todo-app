@@ -24,6 +24,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
+import android.graphics.Camera;
 import android.graphics.ImageFormat;
 import android.graphics.Matrix;
 import android.graphics.Point;
@@ -67,10 +68,6 @@ import com.microsoft.azure.storage.blob.CloudBlobClient;
 import com.microsoft.azure.storage.blob.CloudBlobContainer;
 import com.microsoft.azure.storage.blob.CloudBlockBlob;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -79,7 +76,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.PrintStream;
 import java.net.HttpURLConnection;
 import java.net.URISyntaxException;
@@ -262,6 +258,7 @@ public class Camera2BasicFragment extends Fragment
     private static String api_url = "";
     private static String connection = "";
     private static String storage_url = "";
+    private static Point pictureSize;
 
     /**
      * This a callback object for the {@link ImageReader}. "onImageAvailable" will be called when a
@@ -468,6 +465,7 @@ public class Camera2BasicFragment extends Fragment
         api_url = getString(R.string.server_url);
         storage_url = getString(R.string.azure_url);
         connection = getString(R.string.azure_connection);
+
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -560,6 +558,7 @@ public class Camera2BasicFragment extends Fragment
                 Size largest = Collections.max(
                         Arrays.asList(map.getOutputSizes(ImageFormat.JPEG)),
                         new CompareSizesByArea());
+                pictureSize = new Point(largest.getWidth(), largest.getHeight());
                 mImageReader = ImageReader.newInstance(largest.getWidth(), largest.getHeight(),
                         ImageFormat.JPEG, /*maxImages*/2);
                 mImageReader.setOnImageAvailableListener(
@@ -883,7 +882,7 @@ public class Camera2BasicFragment extends Fragment
                 public void onCaptureCompleted(@NonNull CameraCaptureSession session,
                                                @NonNull CaptureRequest request,
                                                @NonNull TotalCaptureResult result) {
-                    showToast("Saved: " + mFile);
+                    //showToast("Saved: " + mFile);
                     Log.d(TAG, mFile.toString());
                     unlockFocus();
                 }
@@ -945,6 +944,8 @@ public class Camera2BasicFragment extends Fragment
     public static String getApiUrl() { return api_url;}
     public static String getStorageUrl() { return storage_url;}
     public static String getConnectionString() { return connection;}
+    public static int getPictureWidth() {return pictureSize.x;}
+    public static int getPictureHeight() {return pictureSize.y;}
 
     /**
      * Saves a JPEG {@link Image} into the specified {@link File}.
@@ -972,7 +973,7 @@ public class Camera2BasicFragment extends Fragment
 
         @Override
         public void run() {
-
+            System.out.println("カメラ解像度:\r\n\t" + getPictureWidth() + ":" + getPictureHeight());
             System.out.println("Saving image");
             if (mImage != null && mFile != null) {
                 // 画像を保存
@@ -996,7 +997,6 @@ public class Camera2BasicFragment extends Fragment
                         String imageName = sdf.format(date) + ".jpg";
                         System.out.println("containerName: " + containerName);
                         System.out.println("imageName: " + imageName);
-
 
                         // azure storageにアップロード
                         CloudStorageAccount storageAccount = CloudStorageAccount.parse(connection);
@@ -1048,9 +1048,8 @@ public class Camera2BasicFragment extends Fragment
                             ObjectMapper mapper = new ObjectMapper();
                             Response response = mapper.readValue(json, Response.class);
                             // 受け取ったjsonからx,y,todo_textを更新
-                            ImageSaver.x = response.faceRectangle.left;
-                            //ImageSaver.y = response.faceRectangle.top + response.faceRectangle.height;
-                            ImageSaver.y = response.faceRectangle.top;
+                            ImageSaver.x = response.faceRectangle.left * CameraActivity.getWidth() / getPictureWidth();
+                            ImageSaver.y = response.faceRectangle.top * CameraActivity.getHeight() / getPictureHeight();
                             ImageSaver.todo_text = response.todo.date + "\r\n" + response.todo.title;
                             System.out.println("todo:\r\n" + todo_text);
                             System.out.println("x:" + ImageSaver.x + "\r\n" + "y:" + ImageSaver.y);
