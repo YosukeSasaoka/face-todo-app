@@ -78,6 +78,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.net.HttpURLConnection;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -258,6 +260,7 @@ public class Camera2BasicFragment extends Fragment
     private String todo_text;
     private static String api_url = "";
     private static String connection = "";
+    private static String storage_url = "";
 
     /**
      * This a callback object for the {@link ImageReader}. "onImageAvailable" will be called when a
@@ -461,7 +464,8 @@ public class Camera2BasicFragment extends Fragment
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         mFile = new File(getActivity().getExternalFilesDir(null), "pic.jpg");
-        api_url = getString(R.string.server_url) + getString(R.string.azure_url);
+        api_url = getString(R.string.server_url);
+        storage_url = getString(R.string.azure_url);
         connection = getString(R.string.azure_connection);
 
         x = 0;
@@ -942,6 +946,7 @@ public class Camera2BasicFragment extends Fragment
     public float getY() {return ImageSaver.getY();}
     public String getTodo() {return ImageSaver.getTodo();}
     public static String getApiUrl() { return api_url;}
+    public static String getStorageUrl() { return storage_url;}
     public static String getConnectionString() { return connection;}
 
     /**
@@ -990,6 +995,7 @@ public class Camera2BasicFragment extends Fragment
                         String containerName = "person";
                         String imageName = "FaceImage.jpg";
 
+                        // azure storageにアップロード
                         CloudStorageAccount storageAccount = CloudStorageAccount.parse(connection);
                         CloudBlobClient blobClient = storageAccount.createCloudBlobClient();
                         CloudBlobContainer container = blobClient.getContainerReference(containerName);
@@ -997,11 +1003,25 @@ public class Camera2BasicFragment extends Fragment
                         blob.upload(new FileInputStream(mFile), mFile.length());
                         System.out.println("---UploadSuccess---");
 
-                        String apiURL = getApiUrl() + containerName + "/" + imageName;
+                        //HTTPリクエストの設定
+                        String apiURL = getApiUrl();
                         //String apiURL = "http://httpbin.org/get";
                         URL connectURL = new URL(apiURL);
                         HttpURLConnection con = (HttpURLConnection)connectURL.openConnection();
-                        con.setRequestMethod("GET");
+                        con.setRequestMethod("POST");
+                        con.addRequestProperty("User-Agent", "Android");
+                        con.addRequestProperty("Content-Type", "application/json; charset=UTF-8");
+                        con.setDoOutput(true);
+                        con.setDoInput(true);
+
+                        // リクエストボディを書き込み
+                        String jsonText = "{\"FaceUrl\": \"" + getStorageUrl() + containerName + "/" + imageName + "\"}";
+                        System.out.println("RequestBody: " + jsonText);
+                        PrintStream ps = new PrintStream(con.getOutputStream());
+                        ps.print(jsonText);
+                        ps.close();
+
+                        // リクエスト開始
                         con.connect();
                         int status = con.getResponseCode();
                         System.out.println("API URL:" + apiURL);
