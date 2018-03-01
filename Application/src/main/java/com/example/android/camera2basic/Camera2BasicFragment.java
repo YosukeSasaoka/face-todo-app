@@ -256,6 +256,7 @@ public class Camera2BasicFragment extends Fragment
     private File mFile;
     private float x,y;
     private String todo_text;
+    private static String api_url = "";
 
     /**
      * This a callback object for the {@link ImageReader}. "onImageAvailable" will be called when a
@@ -460,6 +461,7 @@ public class Camera2BasicFragment extends Fragment
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         mFile = new File(getActivity().getExternalFilesDir(null), "pic.jpg");
+        api_url = getString(R.string.server_url) + getString(R.string.azure_url);
 
         /*
          valuesの中にxmlを配置し、stringのresource"azure_key","azure_connection"を記述
@@ -950,6 +952,7 @@ public class Camera2BasicFragment extends Fragment
     public float getX() {return ImageSaver.getX();}
     public float getY() {return ImageSaver.getY();}
     public String getTodo() {return ImageSaver.getTodo();}
+    public static String getApiUrl() { return api_url;}
 
     /**
      * Saves a JPEG {@link Image} into the specified {@link File}.
@@ -1003,8 +1006,8 @@ public class Camera2BasicFragment extends Fragment
                         CloudBlockBlob blob = container.getBlockBlobReference(imageName);
                         blob.upload(new FileInputStream(mFile), mFile.length());
 
-                        
-                        String apiURL = "http://httpbin.org/get";
+                        String apiURL = getApiUrl() + containerName + "/" + imageName;
+                        //String apiURL = "http://httpbin.org/get";
                         URL connectURL = new URL(apiURL);
                         HttpURLConnection con = (HttpURLConnection)connectURL.openConnection();
                         con.setRequestMethod("GET");
@@ -1014,6 +1017,7 @@ public class Camera2BasicFragment extends Fragment
                         con.setDoOutput(true);
                         con.setInstanceFollowRedirects(true);
 */
+                        System.out.println("API URL:" + apiURL);
                         System.out.println("response Code :[" + status +"]" );
 
                         if (status == HttpURLConnection.HTTP_OK) {
@@ -1032,7 +1036,6 @@ public class Camera2BasicFragment extends Fragment
 
                             ObjectMapper mapper = new ObjectMapper();
                             Face face = mapper.readValue(json, Face.class);
-                            System.out.println(face.faceRectangle.top);
                             ImageSaver.x = face.faceRectangle.left;
                             ImageSaver.y = face.faceRectangle.top;
                             System.out.println("x:" + ImageSaver.x + "\r\n" + "y:" + ImageSaver.y);
