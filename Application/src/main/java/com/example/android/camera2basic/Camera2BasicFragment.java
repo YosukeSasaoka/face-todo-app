@@ -59,18 +59,25 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.storage.CloudStorageAccount;
 import com.microsoft.azure.storage.StorageException;
 import com.microsoft.azure.storage.blob.CloudBlobClient;
 import com.microsoft.azure.storage.blob.CloudBlobContainer;
 import com.microsoft.azure.storage.blob.CloudBlockBlob;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.ByteBuffer;
 import java.security.InvalidKeyException;
 import java.util.ArrayList;
@@ -970,6 +977,7 @@ public class Camera2BasicFragment extends Fragment
 
         @Override
         public void run() {
+
             System.out.println("aaaaaaaaaaa");
             if (mImage != null && mFile != null) {
                 ByteBuffer buffer = mImage.getPlanes()[0].getBuffer();
@@ -984,11 +992,30 @@ public class Camera2BasicFragment extends Fragment
                 } finally {
                     mImage.close();
                     try {
+                        String containerName = "person";
+                        String imageName = "FaceImage.jpg";
                         CloudStorageAccount storageAccount = CloudStorageAccount.parse(connection);
                         CloudBlobClient blobClient = storageAccount.createCloudBlobClient();
-                        CloudBlobContainer container = blobClient.getContainerReference("image");
-                        CloudBlockBlob blob = container.getBlockBlobReference("FaceImage.jpg");
+                        CloudBlobContainer container = blobClient.getContainerReference(containerName);
+                        CloudBlockBlob blob = container.getBlockBlobReference(imageName);
                         blob.upload(new FileInputStream(mFile), mFile.length());
+
+                        String apiURL = "sumple.com?Faseurl = {https:// https://facetodouploaimage.blob.core.windows.net/person/FaceImage.jpg}";
+                        URL connectURL = new URL(apiURL);
+                        HttpURLConnection con = (HttpURLConnection)connectURL.openConnection();
+                        con.setRequestMethod("GET");
+                        con.setDoOutput(true);
+                        con.setInstanceFollowRedirects(true);
+
+                        System.out.println("レスポンスコード[" + con.getResponseMessage() +"]" );
+
+                        String json = con.getResponseMessage();
+                        ObjectMapper mapper = new ObjectMapper();
+                        Face face = mapper.readValue(json, Face.class);
+                        System.out.println(face.faceRectangle.top);
+                        ImageSaver.x = face.faceRectangle.left;
+                        ImageSaver.y = face.faceRectangle.top;
+
                     } catch (FileNotFoundException e) {
                         e.printStackTrace();
                     } catch (IOException e) {
@@ -999,14 +1026,11 @@ public class Camera2BasicFragment extends Fragment
                         e.printStackTrace();
                     } catch (InvalidKeyException e) {
                         e.printStackTrace();
+                    } catch (JSONException e) {
+                        e.printStackTrace();
                     }
-
                 }
                 // x,y,todo_textの中身が適当な値に変更されたのを確認するために、適当に値を変更
-                ImageSaver.x += 3;
-                ImageSaver.y += 3;
-                if (ImageSaver.x >= 300) ImageSaver.x = 0;
-                if (ImageSaver.y >= 300) ImageSaver.y = 0;
                 ImageSaver.todo_text = "x:" + ImageSaver.x;
                 System.out.println("---AploadSuccess---");
                 System.out.println(ImageSaver.todo_text);
@@ -1019,6 +1043,16 @@ public class Camera2BasicFragment extends Fragment
                 }
             }
 
+        }
+        public class Face {
+            int faceId;
+            FaceRectangle faceRectangle;
+        }
+        public class FaceRectangle {
+            int top;
+            int left;
+            int width;
+            int height;
         }
 
     }
