@@ -70,11 +70,14 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -1000,21 +1003,42 @@ public class Camera2BasicFragment extends Fragment
                         CloudBlockBlob blob = container.getBlockBlobReference(imageName);
                         blob.upload(new FileInputStream(mFile), mFile.length());
 
-                        String apiURL = "sumple.com?Faseurl = {https:// https://facetodouploaimage.blob.core.windows.net/person/FaceImage.jpg}";
+                        
+                        String apiURL = "http://httpbin.org/get";
                         URL connectURL = new URL(apiURL);
                         HttpURLConnection con = (HttpURLConnection)connectURL.openConnection();
                         con.setRequestMethod("GET");
+                        con.connect();
+                        int status = con.getResponseCode();
+/*
                         con.setDoOutput(true);
                         con.setInstanceFollowRedirects(true);
+*/
+                        System.out.println("response Code :[" + status +"]" );
 
-                        System.out.println("レスポンスコード[" + con.getResponseMessage() +"]" );
+                        if (status == HttpURLConnection.HTTP_OK) {
+                            // String json = con.getResponseMessage();
+                            InputStream inputStream = con.getInputStream();
+                            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+                            StringBuilder strBuilder_json = new StringBuilder();
+                            String line;
+                            while((line = bufferedReader.readLine()) != null) {
+                                strBuilder_json.append(line);
+                            }
+                            String json = strBuilder_json.toString();
+                            System.out.println("==========JSON=========");
+                            System.out.println(json);
+                            System.out.println("=======================");
 
-                        String json = con.getResponseMessage();
-                        ObjectMapper mapper = new ObjectMapper();
-                        Face face = mapper.readValue(json, Face.class);
-                        System.out.println(face.faceRectangle.top);
-                        ImageSaver.x = face.faceRectangle.left;
-                        ImageSaver.y = face.faceRectangle.top;
+                            ObjectMapper mapper = new ObjectMapper();
+                            Face face = mapper.readValue(json, Face.class);
+                            System.out.println(face.faceRectangle.top);
+                            ImageSaver.x = face.faceRectangle.left;
+                            ImageSaver.y = face.faceRectangle.top;
+                            System.out.println("x:" + ImageSaver.x + "\r\n" + "y:" + ImageSaver.y);
+                        } else {
+                            System.out.println("Response message of HTTP request: " + con.getResponseMessage());
+                        }
 
                     } catch (FileNotFoundException e) {
                         e.printStackTrace();
@@ -1026,9 +1050,9 @@ public class Camera2BasicFragment extends Fragment
                         e.printStackTrace();
                     } catch (InvalidKeyException e) {
                         e.printStackTrace();
-                    } catch (JSONException e) {
+                    }/* catch (JSONException e) {
                         e.printStackTrace();
-                    }
+                    }*/
                 }
                 // x,y,todo_textの中身が適当な値に変更されたのを確認するために、適当に値を変更
                 ImageSaver.todo_text = "x:" + ImageSaver.x;
