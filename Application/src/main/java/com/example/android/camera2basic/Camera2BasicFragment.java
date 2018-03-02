@@ -24,6 +24,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
+import android.graphics.Camera;
 import android.graphics.ImageFormat;
 import android.graphics.Matrix;
 import android.graphics.Point;
@@ -1038,16 +1039,10 @@ public class Camera2BasicFragment extends Fragment
                                 ps.close();
 
                                 // リクエスト開始
-    long start = System.currentTimeMillis();
-    System.out.println("::::::::::::start:::::::::::::");
                                 con.connect();
                                 int status = con.getResponseCode();
                                 System.out.println("API URL:" + apiURL);
                                 System.out.println("response Code :[" + status + "]");
-    long end = System.currentTimeMillis();
-    System.out.println("::::::::::::::::::end:::::::::::::::");
-    System.out.println((start - end) + "ms");
-    System.out.println("::::::::::::::::::::::::::::::::::::");
                                 if (status == HttpURLConnection.HTTP_OK) {
                                     // リクエストの返り値を取得
                                     InputStream inputStream = con.getInputStream();
@@ -1065,9 +1060,20 @@ public class Camera2BasicFragment extends Fragment
                                     ObjectMapper mapper = new ObjectMapper();
                                     Response response = mapper.readValue(json, Response.class);
                                     // 受け取ったjsonからx,y,todo_textを更新
-                                    ImageSaver.x = response.faceRectangle.left * CameraActivity.getWidth() / getPictureWidth();
-                                    ImageSaver.y = response.faceRectangle.top * CameraActivity.getHeight() / getPictureHeight();
-                                    ImageSaver.todo_text = response.todo.date + "\r\n" + response.todo.title;
+                                    if (response.show) {
+                                        float height = Math.max(getPictureHeight(),getPictureWidth());
+                                        float width = Math.min(getPictureHeight(), getPictureWidth());
+                                        float x = (float)response.faceRectangle.left * (float)CameraActivity.getWidth() / width;
+                                        float y = (float)(response.faceRectangle.top + response.faceRectangle.height) / height * (float) CameraActivity.getHeight();
+                                        ImageSaver.x = x;
+                                        ImageSaver.y = y;
+                                        ImageSaver.todo_text = response.todo.title;
+                                    } else {
+                                        // 表示しない場合はx,yを画面の最大値の2倍、todo_textを空に。
+                                        ImageSaver.x = CameraActivity.getWidth() * 2;
+                                        ImageSaver.y = CameraActivity.getHeight() * 2;
+                                        ImageSaver.todo_text = "";
+                                    }
                                     System.out.println("todo:\r\n" + todo_text);
                                     System.out.println("x:" + ImageSaver.x + "\r\n" + "y:" + ImageSaver.y);
                                 } else {
@@ -1105,6 +1111,8 @@ public class Camera2BasicFragment extends Fragment
     public static class Response {
         @JsonProperty("personId")
         String personId;
+        @JsonProperty("show")
+        boolean show;
         @JsonProperty("faceRectangle")
         FaceRectangle faceRectangle;
         @JsonProperty("todo")
@@ -1125,8 +1133,6 @@ public class Camera2BasicFragment extends Fragment
     public static class Todo {
         @JsonProperty("title")
         String title;
-        @JsonProperty("date")
-        String date;
         public Todo() {}
     }
 
