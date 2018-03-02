@@ -24,6 +24,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
+import android.graphics.Camera;
 import android.graphics.ImageFormat;
 import android.graphics.Matrix;
 import android.graphics.Point;
@@ -59,24 +60,34 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.storage.CloudStorageAccount;
 import com.microsoft.azure.storage.StorageException;
 import com.microsoft.azure.storage.blob.CloudBlobClient;
 import com.microsoft.azure.storage.blob.CloudBlobContainer;
 import com.microsoft.azure.storage.blob.CloudBlockBlob;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.PrintStream;
+import java.net.HttpURLConnection;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.ByteBuffer;
 import java.security.InvalidKeyException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
@@ -244,8 +255,10 @@ public class Camera2BasicFragment extends Fragment
      */
 
     private File mFile;
-    private float x,y;
-    private String todo_text;
+    private static String api_url = "";
+    private static String connection = "";
+    private static String storage_url = "";
+    private static Point pictureSize;
 
     /**
      * This a callback object for the {@link ImageReader}. "onImageAvailable" will be called when a
@@ -254,8 +267,7 @@ public class Camera2BasicFragment extends Fragment
     private final ImageReader.OnImageAvailableListener mOnImageAvailableListener = new ImageReader.OnImageAvailableListener() {
             @Override
             public void onImageAvailable(ImageReader reader) {
-                String connection = getString(R.string.azure_connection);
-                mBackgroundHandler.post(new ImageSaver(reader.acquireNextImage(), mFile, connection));
+                mBackgroundHandler.post(new ImageSaver(reader.acquireLatestImage(), mFile));
                 System.out.println("log Listener");
             }
     };
@@ -450,34 +462,24 @@ public class Camera2BasicFragment extends Fragment
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         mFile = new File(getActivity().getExternalFilesDir(null), "pic.jpg");
+        api_url = getString(R.string.server_url);
+        storage_url = getString(R.string.azure_url);
+        connection = getString(R.string.azure_connection);
 
-        /*
-         valuesの中にxmlを配置し、stringのresource"azure_key","azure_connection"を記述
-          */
-        // connection[0] = getString(R.string.azure_key);
-        // connection[1] = getString(R.string.azure_connection);
-        x = 0;
-        y = 0;
-        todo_text = "x:" + x;
         new Thread(new Runnable() {
             @Override
             public void run() {
-                for (;;) {
-                    try {
-                        Thread.sleep(5000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
+                try {
+                    Thread.sleep(3000);
+                    for (;;) {
+                        Thread.sleep(100);
+                        if (!ImageSaver.isNowProcessing()) {
+                            System.out.println("====start take picture====");
+                            takePicture();
+                        }
                     }
-                    takePicture();
-                    // x,y,todo_textが更新された場合にきちんと変更が反映できるかのテストコード
-                    /*
-                    x += 1;
-                    y += 1;
-                    if (x > 300) x = 0;
-                    if (y > 300) y = 0;
-                    todo_text = "x: " + x;
-                    */
-                    System.out.println("a");
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
             }
         }).start();
@@ -558,6 +560,7 @@ public class Camera2BasicFragment extends Fragment
                 Size largest = Collections.max(
                         Arrays.asList(map.getOutputSizes(ImageFormat.JPEG)),
                         new CompareSizesByArea());
+                pictureSize = new Point(largest.getWidth(), largest.getHeight());
                 mImageReader = ImageReader.newInstance(largest.getWidth(), largest.getHeight(),
                         ImageFormat.JPEG, /*maxImages*/2);
                 mImageReader.setOnImageAvailableListener(
@@ -626,7 +629,8 @@ public class Camera2BasicFragment extends Fragment
                 }
 
                 // Check if the flash is supported.
-                Boolean available = characteristics.get(CameraCharacteristics.FLASH_INFO_AVAILABLE);
+                //Boolean available = characteristics.get(CameraCharacteristics.FLASH_INFO_AVAILABLE);
+                Boolean available = false;
                 mFlashSupported = available == null ? false : available;
 
                 mCameraId = cameraId;
@@ -881,7 +885,7 @@ public class Camera2BasicFragment extends Fragment
                 public void onCaptureCompleted(@NonNull CameraCaptureSession session,
                                                @NonNull CaptureRequest request,
                                                @NonNull TotalCaptureResult result) {
-                    showToast("Saved: " + mFile);
+                    //showToast("Saved: " + mFile);
                     Log.d(TAG, mFile.toString());
                     unlockFocus();
                 }
@@ -940,6 +944,11 @@ public class Camera2BasicFragment extends Fragment
     public float getX() {return ImageSaver.getX();}
     public float getY() {return ImageSaver.getY();}
     public String getTodo() {return ImageSaver.getTodo();}
+    public static String getApiUrl() { return api_url;}
+    public static String getStorageUrl() { return storage_url;}
+    public static String getConnectionString() { return connection;}
+    public static int getPictureWidth() {return pictureSize.x;}
+    public static int getPictureHeight() {return pictureSize.y;}
 
     /**
      * Saves a JPEG {@link Image} into the specified {@link File}.
@@ -954,24 +963,30 @@ public class Camera2BasicFragment extends Fragment
          * The file we save the image into.
          */
         private final File mFile;
-        private CloudBlockBlob blob;
-        private String connection;
         private static float x = 0, y = 0;
         private static String todo_text = "";
+        private static boolean nowProcessing = false;
 
-        ImageSaver(Image image, File file, String _connection) {
+        ImageSaver(Image image, File file) {
             mImage = image;
             mFile = file;
-            connection = _connection;
         }
         public static float getX() {return x;}
         public static float getY() {return y;}
         public static String getTodo() {return todo_text;}
+        public static boolean isNowProcessing() {return nowProcessing;}
 
         @Override
         public void run() {
-            System.out.println("aaaaaaaaaaa");
+            if (nowProcessing) {
+                System.out.println("Now Processing.");
+                mImage.close();
+                return;
+            }
+            System.out.println("カメラ解像度:\r\n\t" + getPictureWidth() + ":" + getPictureHeight());
+            System.out.println("Saving image");
             if (mImage != null && mFile != null) {
+                // 画像を保存
                 ByteBuffer buffer = mImage.getPlanes()[0].getBuffer();
                 byte[] bytes = new byte[buffer.remaining()];
                 buffer.get(bytes);
@@ -983,33 +998,105 @@ public class Camera2BasicFragment extends Fragment
                     e.printStackTrace();
                 } finally {
                     mImage.close();
-                    try {
-                        CloudStorageAccount storageAccount = CloudStorageAccount.parse(connection);
-                        CloudBlobClient blobClient = storageAccount.createCloudBlobClient();
-                        CloudBlobContainer container = blobClient.getContainerReference("image");
-                        CloudBlockBlob blob = container.getBlockBlobReference("FaceImage.jpg");
-                        blob.upload(new FileInputStream(mFile), mFile.length());
-                    } catch (FileNotFoundException e) {
-                        e.printStackTrace();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (URISyntaxException e) {
-                        e.printStackTrace();
-                    } catch (StorageException e) {
-                        e.printStackTrace();
-                    } catch (InvalidKeyException e) {
-                        e.printStackTrace();
-                    }
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            System.out.println("Uploading image");
+                            try {
+                                nowProcessing = true;
+                                String connection = getConnectionString();
+                                String containerName = "person";
+                                Date date = new Date();
+                                SimpleDateFormat sdf = new SimpleDateFormat("yyyy_mm_dd_hh_mm_ss");
+                                String imageName = sdf.format(date) + ".jpg";
+                                System.out.println("containerName: " + containerName);
+                                System.out.println("imageName: " + imageName);
+
+                                // azure storageにアップロード
+                                CloudStorageAccount storageAccount = CloudStorageAccount.parse(connection);
+                                CloudBlobClient blobClient = storageAccount.createCloudBlobClient();
+                                CloudBlobContainer container = blobClient.getContainerReference(containerName);
+                                CloudBlockBlob blob = container.getBlockBlobReference(imageName);
+                                blob.upload(new FileInputStream(mFile), mFile.length());
+                                System.out.println("---UploadSuccess---");
+
+                                //HTTPリクエストの設定
+                                String apiURL = getApiUrl();
+                                //String apiURL = "http://httpbin.org/get";
+                                URL connectURL = new URL(apiURL);
+                                HttpURLConnection con = (HttpURLConnection) connectURL.openConnection();
+                                con.setRequestMethod("POST");
+                                con.addRequestProperty("User-Agent", "Android");
+                                con.addRequestProperty("Content-Type", "application/json; charset=UTF-8");
+                                con.setDoOutput(true);
+                                con.setDoInput(true);
+
+                                // リクエストボディを書き込み
+                                String jsonText = "{\"FaceUrl\": \"" + getStorageUrl() + containerName + "/" + imageName + "\"}";
+                                System.out.println("RequestBody: " + jsonText);
+                                PrintStream ps = new PrintStream(con.getOutputStream());
+                                ps.print(jsonText);
+                                ps.close();
+
+                                // リクエスト開始
+                                con.connect();
+                                int status = con.getResponseCode();
+                                System.out.println("API URL:" + apiURL);
+                                System.out.println("response Code :[" + status + "]");
+                                if (status == HttpURLConnection.HTTP_OK) {
+                                    // リクエストの返り値を取得
+                                    InputStream inputStream = con.getInputStream();
+                                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+                                    StringBuilder strBuilder_json = new StringBuilder();
+                                    String line;
+                                    while ((line = bufferedReader.readLine()) != null) {
+                                        strBuilder_json.append(line);
+                                    }
+                                    // jsonの解釈部
+                                    String json = strBuilder_json.toString();
+                                    System.out.println("==========JSON=========");
+                                    System.out.println(json);
+                                    System.out.println("=======================");
+                                    ObjectMapper mapper = new ObjectMapper();
+                                    Response response = mapper.readValue(json, Response.class);
+                                    // 受け取ったjsonからx,y,todo_textを更新
+                                    if (response.show) {
+                                        float height = Math.max(getPictureHeight(),getPictureWidth());
+                                        float width = Math.min(getPictureHeight(), getPictureWidth());
+                                        float x = (float)response.faceRectangle.left * (float)CameraActivity.getWidth() / width;
+                                        float y = (float)(response.faceRectangle.top + response.faceRectangle.height) / height * (float) CameraActivity.getHeight();
+                                        ImageSaver.x = x;
+                                        ImageSaver.y = y;
+                                        ImageSaver.todo_text = response.todo.title;
+                                    } else {
+                                        // 表示しない場合はx,yを画面の最大値の2倍、todo_textを空に。
+                                        ImageSaver.x = CameraActivity.getWidth() * 2;
+                                        ImageSaver.y = CameraActivity.getHeight() * 2;
+                                        ImageSaver.todo_text = "";
+                                    }
+                                    System.out.println("todo:\r\n" + todo_text);
+                                    System.out.println("x:" + ImageSaver.x + "\r\n" + "y:" + ImageSaver.y);
+                                } else {
+                                    System.out.println("Response message of HTTP request: " + con.getResponseMessage());
+                                }
+
+                            } catch (FileNotFoundException e) {
+                                e.printStackTrace();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            } catch (URISyntaxException e) {
+                                e.printStackTrace();
+                            } catch (StorageException e) {
+                                e.printStackTrace();
+                            } catch (InvalidKeyException e) {
+                                e.printStackTrace();
+                            } finally {
+                                nowProcessing = false;
+                            }
+                        }
+                    }).start();
 
                 }
-                // x,y,todo_textの中身が適当な値に変更されたのを確認するために、適当に値を変更
-                ImageSaver.x += 3;
-                ImageSaver.y += 3;
-                if (ImageSaver.x >= 300) ImageSaver.x = 0;
-                if (ImageSaver.y >= 300) ImageSaver.y = 0;
-                ImageSaver.todo_text = "x:" + ImageSaver.x;
-                System.out.println("---AploadSuccess---");
-                System.out.println(ImageSaver.todo_text);
                 if (null != output) {
                     try {
                         output.close();
@@ -1018,9 +1105,35 @@ public class Camera2BasicFragment extends Fragment
                     }
                 }
             }
-
         }
+    }
 
+    public static class Response {
+        @JsonProperty("personId")
+        String personId;
+        @JsonProperty("show")
+        boolean show;
+        @JsonProperty("faceRectangle")
+        FaceRectangle faceRectangle;
+        @JsonProperty("todo")
+        Todo todo;
+        public Response() {}
+    }
+    public static class FaceRectangle {
+        @JsonProperty("top")
+        int top;
+        @JsonProperty("left")
+        int left;
+        @JsonProperty("width")
+        int width;
+        @JsonProperty("height")
+        int height;
+        public FaceRectangle() {}
+    }
+    public static class Todo {
+        @JsonProperty("title")
+        String title;
+        public Todo() {}
     }
 
     /**
